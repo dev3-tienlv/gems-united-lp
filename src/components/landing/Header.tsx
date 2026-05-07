@@ -50,7 +50,7 @@ function navLinkClasses({ pathname, href, variant }: NavLinkClassesArgs): string
   const active = isNavActive(pathname, href);
   if (variant === "desktop") {
     return [
-      "relative text-[13px] font-semibold transition-colors",
+      "relative text-sm font-semibold transition-colors",
       active
         ? "text-[color:var(--brand)] after:absolute after:left-0 after:right-0 after:-bottom-1 after:h-0.5 after:rounded-full after:bg-[color:var(--brand-light)]"
         : "text-[color:var(--ink-2)] hover:text-[color:var(--brand)]",

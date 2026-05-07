@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import { Interactive3DVisual } from "@/components/effects/Interactive3DVisual";
 import { Magnetic } from "@/components/effects/Magnetic";
 import { Reveal } from "@/components/motion/Reveal";
 import { getMessages } from "@/i18n/messages";
@@ -49,19 +49,16 @@ export function AboutHero({ locale }: AboutHeroProps) {
         </Reveal>
 
         <Reveal delay={0.1} className="relative flex items-center justify-center md:justify-end">
-          <div className="group relative animate-float-gentle [perspective:1200px]">
-            <div className="pointer-events-none absolute left-1/2 top-1/2 h-[72%] w-[72%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_50%_45%,rgba(126,217,87,0.25),rgba(111,66,201,0.12)_45%,transparent_70%)] blur-2xl" />
-            <Image
-              src="/mission-3d.png"
-              alt={text.imageAlt}
-              width={560}
-              height={560}
-              priority
-              fetchPriority="high"
-              sizes="(max-width: 768px) 360px, 560px"
-              className="relative h-[360px] w-[360px] object-contain drop-shadow-[0_28px_40px_rgba(27,19,50,0.22)] transition-transform duration-700 [transform:translateZ(0)] will-change-transform group-hover:[transform:rotateX(10deg)_rotateY(-14deg)_translateZ(26px)] md:h-[560px] md:w-[560px]"
-            />
-          </div>
+          <Interactive3DVisual
+            src="/mission-3d.png"
+            alt={text.imageAlt}
+            width={560}
+            height={560}
+            sizes="(max-width: 768px) 360px, 560px"
+            containerClassName="h-[360px] w-[360px] md:h-[560px] md:w-[560px]"
+            imageClassName="drop-shadow-[0_28px_40px_rgba(27,19,50,0.22)]"
+            priority
+          />
         </Reveal>
       </div>
     </section>

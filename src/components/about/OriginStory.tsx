@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { Interactive3DVisual } from "@/components/effects/Interactive3DVisual";
 import { Reveal } from "@/components/motion/Reveal";
 import { SectionTitle } from "@/components/landing/SectionTitle";
 import { getMessages } from "@/i18n/messages";
@@ -23,17 +23,16 @@ export function OriginStory({ locale }: OriginStoryProps) {
         </Reveal>
 
         <Reveal delay={0.08}>
-          <article className="relative p-4 md:p-6">
-            <div className="animate-float-gentle">
-              <Image
-                src="/journey-3d-v2.png"
-                alt={text.imageAlt}
-                width={420}
-                height={420}
-                sizes="(max-width: 768px) 320px, 420px"
-                className="mx-auto h-72 w-72 object-contain drop-shadow-[0_24px_30px_rgba(27,19,50,0.22)] md:h-[420px] md:w-[420px]"
-              />
-            </div>
+          <article className="relative flex justify-center p-4 md:p-6">
+            <Interactive3DVisual
+              src="/journey-3d-v2.png"
+              alt={text.imageAlt}
+              width={520}
+              height={520}
+              sizes="(max-width: 768px) 360px, 520px"
+              containerClassName="h-[340px] w-[340px] md:h-[520px] md:w-[520px]"
+              imageClassName="drop-shadow-[0_28px_36px_rgba(27,19,50,0.22)]"
+            />
           </article>
         </Reveal>
       </div>
