@@ -110,7 +110,6 @@ body {
   background: var(--bg);
   color: var(--fg);
   font-family: var(--ff-body), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto;
-  font-feature-settings: "ss01", "cv11";
 }
 
 button,
