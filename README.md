@@ -1,3 +1,43 @@
+# GEMS United Headless Frontend
+
+Next.js frontend for the Wix Headless direction (UI fully controlled in code).
+
+## Quick start
+
+1. Copy env file:
+
+```bash
+cp .env.example .env.local
+```
+
+2. Fill required values in `.env.local`:
+
+- `WIX_HEADLESS_API_KEY`: Wix API key for server-side data requests
+- `WIX_HEADLESS_SITE_ID`: Defaults to `b97a67bb-8f38-442d-8e50-69d29744f34c`
+- `WIX_CAREERS_COLLECTION_ID`: Wix CMS collection ID for careers
+- `WIX_BLOGS_COLLECTION_ID`: Wix CMS collection ID for blogs
+- `WIX_INBOX_API_TOKEN`: Wix token with `SCOPE.DC-INBOX.MANAGE-MSGS` (for headless chat bridge)
+
+3. Run dev server:
+
+```bash
+npm run dev
+```
+
+## Integration behavior
+
+- Homepage reads data via `src/lib/wix-headless.ts`
+- If Wix credentials/collection IDs are missing, app falls back to local mock data
+- Headless chat widget posts to `POST /api/wix-chat` and forwards visitor messages to Wix Inbox/Chat
+- Connection status endpoint:
+
+`GET /api/headless-status`
+
+## Notes
+
+- Keep API key server-only (never expose to client components)
+- For production, set env vars in hosting provider (e.g. Vercel project settings)
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
