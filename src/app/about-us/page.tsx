@@ -33,7 +33,7 @@ export default async function AboutUsPage() {
   const locale = await getLocale();
   const text = getMessages(locale);
   return (
-    <div className="bg-[color:var(--bg)]">
+    <div className="bg-gradient-to-br from-[color:var(--about-hero-from)] via-[color:var(--hero-via)] to-[color:var(--about-hero-to)]">
       <Header locale={locale} />
       <main id="main-content">
         <AboutHero locale={locale} />
@@ -62,7 +62,7 @@ export default async function AboutUsPage() {
         <GemsterCulture locale={locale} />
         <DualCta locale={locale} />
       </main>
-      <Footer locale={locale} />
+      <Footer locale={locale} showTopBanner={false} />
     </div>
   );
 }

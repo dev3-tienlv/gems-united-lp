@@ -96,7 +96,7 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
   ].filter((section) => section.lines.length > 0);
 
   return (
-    <div className="bg-[color:var(--bg)]">
+    <div className="bg-gradient-to-br from-[color:var(--hero-from)] via-[color:var(--hero-via)] to-[color:var(--hero-to)]">
       <Header locale={locale} />
       <main id="main-content">
         <JsonLd data={jobPostingJsonLd(career, locale)} />

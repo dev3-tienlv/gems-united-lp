@@ -22,10 +22,10 @@ export default async function CareersPage() {
   const text = getMessages(locale);
 
   return (
-    <div className="bg-[color:var(--bg)]">
+    <div className="bg-[color:var(--soft)]">
       <Header locale={locale} />
       <main id="main-content">
-        <section className="bg-[color:var(--soft)] py-20 md:py-28">
+        <section className="bg-[color:var(--soft)] pb-40 pt-20 md:pb-40 md:pt-28">
           <div className="mx-auto w-full max-w-7xl px-5 md:px-8">
             <Reveal>
               <SectionTitle

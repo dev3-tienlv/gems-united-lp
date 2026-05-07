@@ -14,11 +14,11 @@ export function Hero({ locale }: HeroProps) {
   return (
     <section
       id="home"
-      className="relative overflow-hidden bg-gradient-to-br from-[color:var(--hero-from)] via-[color:var(--hero-via)] to-[color:var(--hero-to)]"
+      className="relative overflow-x-clip bg-gradient-to-br from-[color:var(--hero-from)] via-[color:var(--hero-via)] to-[color:var(--hero-to)]"
     >
       <PurpleBlobs />
 
-      <div className="relative mx-auto grid w-full max-w-7xl items-center gap-12 px-5 pb-24 pt-16 md:grid-cols-[1.1fr_1fr] md:px-8 md:pb-28 md:pt-24">
+      <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-12 px-5 pb-24 pt-16 md:grid-cols-[1.1fr_1fr] md:px-8 md:pb-28 md:pt-24">
         <Reveal>
           <p className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-[color:var(--brand)] shadow-[0_4px_18px_rgba(111,66,201,0.12)] [background-color:var(--hero-badge-bg)]">
             <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--accent)]" />
@@ -66,48 +66,23 @@ export function Hero({ locale }: HeroProps) {
         </Reveal>
       </div>
 
-      <BottomFade />
     </section>
   );
 }
 
 function PurpleBlobs() {
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+    <div className="pointer-events-none absolute inset-0" aria-hidden="true">
       <svg
-        className="absolute -right-44 -top-44 h-[460px] w-[460px] text-[color:var(--brand)] opacity-35 blur-[2px] sm:-right-36 sm:-top-36 sm:h-[540px] sm:w-[540px] sm:opacity-45 md:-right-24 md:-top-20 md:h-[640px] md:w-[640px] md:opacity-100 md:blur-0"
-        viewBox="0 0 600 600"
-        fill="currentColor"
+        className="absolute -right-6 -top-24 h-[360px] w-[52%] min-w-[340px] sm:-right-8 sm:-top-24 sm:h-[420px] md:-right-10 md:-top-28 md:h-[490px]"
+        viewBox="0 0 1000 560"
+        fill="var(--blob-primary)"
+        preserveAspectRatio="none"
       >
-        <path d="M421,323Q380,396,302,420Q224,444,152,396Q80,348,73,266Q66,184,143,140Q220,96,304,93Q388,90,431,165Q474,240,421,323Z" />
+        <path d="M0 0H1000V470C947 344 874 237 755 215C650 198 566 244 468 244C355 244 267 168 238 70C230 44 228 18 228 0H0Z" />
       </svg>
-      <svg
-        className="absolute -right-28 top-56 h-[280px] w-[280px] text-[color:var(--brand-light)] opacity-30 blur-[1px] sm:-right-20 sm:top-52 sm:h-[340px] sm:w-[340px] sm:opacity-45 md:-right-12 md:top-48 md:h-[420px] md:w-[420px] md:opacity-80 md:blur-0"
-        viewBox="0 0 600 600"
-        fill="currentColor"
-      >
-        <path d="M463,316Q433,392,361,423Q289,454,210,434Q131,414,99,338Q67,262,124,205Q181,148,259,126Q337,104,406,153Q475,202,475,251Q475,265,463,316Z" />
-      </svg>
-      <div className="absolute left-[6%] top-[14%] h-3 w-3 rounded-full bg-[color:var(--hero-spark)]" />
-      <div className="absolute left-[14%] top-[24%] h-1.5 w-1.5 rounded-full bg-[color:var(--hero-spark)]/80" />
-      <div className="absolute left-[48%] top-[8%] h-2 w-2 rounded-full bg-[color:var(--hero-spark)]/70" />
-      <div className="absolute right-[40%] bottom-[12%] h-2 w-2 rounded-full bg-[color:var(--brand-light)]/70" />
+      <div className="absolute left-[14%] top-[14%] h-3 w-3 rounded-full bg-[color:var(--hero-spark)]" />
+      <div className="absolute left-[24%] top-[24%] h-1.5 w-1.5 rounded-full bg-[color:var(--hero-spark)]/80" />
     </div>
-  );
-}
-
-function BottomFade() {
-  return (
-    <svg
-      className="absolute bottom-0 left-0 right-0 h-12 w-full text-[color:var(--hero-fade-bottom)]"
-      viewBox="0 0 1440 80"
-      preserveAspectRatio="none"
-      aria-hidden="true"
-    >
-      <path
-        fill="currentColor"
-        d="M0,40 C240,90 480,0 720,30 C960,60 1200,80 1440,40 L1440,80 L0,80 Z"
-      />
-    </svg>
   );
 }

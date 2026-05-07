@@ -24,7 +24,7 @@ export default async function Home() {
   const text = getMessages(locale);
 
   return (
-    <div className="bg-[color:var(--bg)]">
+    <div className="bg-gradient-to-br from-[color:var(--hero-from)] via-[color:var(--hero-via)] to-[color:var(--hero-to)]">
       <Header locale={locale} />
       <main id="main-content">
         <Hero locale={locale} />
@@ -92,7 +92,7 @@ export default async function Home() {
           </div>
         </section>
 
-        <ContactSection locale={locale} sectionClassName="bg-[color:var(--surface)] py-20 md:py-28" />
+        <ContactSection locale={locale} sectionClassName="bg-[color:var(--surface)] pb-40 pt-20 md:pb-40 md:pt-28" />
       </main>
       <Footer locale={locale} />
     </div>

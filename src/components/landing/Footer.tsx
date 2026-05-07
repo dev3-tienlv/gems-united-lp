@@ -6,16 +6,16 @@ import type { Locale } from "@/i18n/types";
 
 interface FooterProps {
   locale: Locale;
+  showTopBanner?: boolean;
 }
 
 interface FooterLink {
   label: string;
   href: string;
   badge?: string;
-  external?: boolean;
 }
 
-export function Footer({ locale }: FooterProps) {
+export function Footer({ locale, showTopBanner = true }: FooterProps) {
   const text = getMessages(locale);
 
   const aboutLinks: FooterLink[] = [
@@ -26,8 +26,36 @@ export function Footer({ locale }: FooterProps) {
   ];
 
   return (
-    <footer className="bg-[color:var(--brand)] text-white">
-      <div className="mx-auto grid w-full max-w-7xl gap-10 px-5 py-16 md:grid-cols-3 md:gap-12 md:px-8">
+    <footer className="relative bg-[color:var(--blob-primary)] text-white">
+      <svg
+        className="pointer-events-none absolute -top-20 left-0 h-24 w-full text-[color:var(--blob-primary)] md:-top-24 md:h-32"
+        viewBox="0 0 1440 160"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <path
+          fill="currentColor"
+          d="M0 48C120 36 240 32 360 40C480 48 600 70 720 68C840 66 960 40 1080 34C1200 28 1320 34 1440 46V160H0V48Z"
+        />
+      </svg>
+
+      {showTopBanner ? (
+        <div className="relative z-10 -mt-px border-b border-white/15">
+          <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-5 pb-10 pt-0 md:flex-row md:items-center md:justify-between md:px-8 md:pt-0">
+            <p className="max-w-2xl text-lg font-semibold leading-snug text-white md:text-2xl">
+              {text.footer.description}
+            </p>
+            <Link
+              href="/contact"
+              className="inline-flex w-fit items-center justify-center rounded-full bg-[color:var(--accent)] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[color:var(--accent-strong)]"
+            >
+              {text.footer.contact}
+            </Link>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="relative z-10 mx-auto grid w-full max-w-7xl gap-10 px-5 py-12 md:grid-cols-3 md:gap-12 md:px-8">
         <div className="md:pr-8">
           <Image
             src="/favicon-gems.png"
@@ -99,7 +127,6 @@ export function Footer({ locale }: FooterProps) {
         </div>
       </div>
 
-      <div className="border-t border-white/10 py-4 text-center text-[11px] text-white/60" />
     </footer>
   );
 }
