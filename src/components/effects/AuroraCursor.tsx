@@ -56,10 +56,10 @@ export function AuroraCursor() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-[40] opacity-100 mix-blend-multiply dark:mix-blend-plus-lighter"
+      className="pointer-events-none fixed inset-0 z-[40] opacity-70 mix-blend-multiply dark:mix-blend-plus-lighter"
       style={{
         background:
-          "radial-gradient(22rem 22rem at var(--mx, 50vw) var(--my, 35vh), var(--cursor-from), var(--cursor-to) 38%, transparent 64%)",
+          "radial-gradient(8rem 8rem at var(--mx, 50vw) var(--my, 35vh), var(--cursor-from), var(--cursor-to) 42%, transparent 68%)",
       }}
     />
   );

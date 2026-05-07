@@ -1,7 +1,6 @@
 import { Reveal } from "@/components/motion/Reveal";
 import { SectionTitle } from "@/components/landing/SectionTitle";
 import { DesignsBento } from "@/components/landing/designs/DesignsBento";
-import { DesignsCta } from "@/components/landing/designs/DesignsCta";
 import { DesignsEmptyState } from "@/components/landing/designs/DesignsEmptyState";
 import { getMessages } from "@/i18n/messages";
 import type { Locale } from "@/i18n/types";
@@ -34,11 +33,6 @@ export function OurDesigns({ items, locale }: OurDesignsProps) {
             <DesignsEmptyState text={text.designs.emptyState} ctaLabel={text.designs.ctaPrimary} />
           )}
         </div>
-        {hasItems ? (
-          <Reveal delay={0.2}>
-            <DesignsCta locale={locale} />
-          </Reveal>
-        ) : null}
       </div>
     </section>
   );

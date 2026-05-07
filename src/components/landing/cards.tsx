@@ -111,9 +111,8 @@ export function BlogCard({ item, locale }: { item: BlogItem; locale: Locale }) {
   const text = getMessages(locale);
   const readHref = item.slug ? `/blog/${item.slug}` : item.permalink;
   const isExternal = Boolean(readHref && /^https?:\/\//.test(readHref));
-
-  return (
-    <article className="group overflow-hidden rounded-3xl border border-[color:var(--line)] bg-[color:var(--surface)] transition hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(25,12,52,0.10)]">
+  const content = (
+    <div className="group overflow-hidden rounded-3xl border border-[color:var(--line)] bg-[color:var(--surface)] transition group-hover:-translate-y-1 group-hover:shadow-[0_18px_40px_rgba(25,12,52,0.10)]">
       {item.imageUrl ? (
         <div className="relative h-48 w-full overflow-hidden bg-[color:var(--soft)]">
           <Image
@@ -144,33 +143,45 @@ export function BlogCard({ item, locale }: { item: BlogItem; locale: Locale }) {
         <p className="mt-3 line-clamp-3 text-sm leading-6 text-[color:var(--muted)]">
           {item.excerpt}
         </p>
-        {readHref ? (
-          isExternal ? (
-            <a
-              href={readHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[color:var(--brand)] transition hover:text-[color:var(--brand-strong)]"
-            >
-              {text.cards.readArticle}
-              <ArrowIcon />
-            </a>
-          ) : (
-            <Link
-              href={readHref}
-              className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[color:var(--brand)] transition hover:text-[color:var(--brand-strong)]"
-            >
-              {text.cards.readArticle}
-              <ArrowIcon />
-            </Link>
-          )
-        ) : (
-          <span className="mt-4 inline-flex cursor-not-allowed items-center gap-1 text-sm font-semibold text-[color:var(--muted)]">
-            {text.cards.readArticle}
-          </span>
-        )}
+        <span
+          className={`mt-4 inline-flex items-center gap-1 text-sm font-semibold ${
+            readHref
+              ? "text-[color:var(--brand)] transition group-hover:text-[color:var(--brand-strong)]"
+              : "cursor-not-allowed text-[color:var(--muted)]"
+          }`}
+          aria-hidden="true"
+        >
+          {text.cards.readArticle}
+          {readHref ? <ArrowIcon /> : null}
+        </span>
       </div>
-    </article>
+    </div>
+  );
+
+  if (!readHref) return content;
+
+  if (isExternal) {
+    return (
+      <a
+        href={readHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="group block rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand-light)]"
+        aria-label={item.title}
+      >
+        {content}
+      </a>
+    );
+  }
+
+  return (
+    <Link
+      href={readHref}
+      className="group block rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand-light)]"
+      aria-label={item.title}
+    >
+      {content}
+    </Link>
   );
 }
 

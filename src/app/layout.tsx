@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Be_Vietnam_Pro } from "next/font/google";
 import { AuroraCursor } from "@/components/effects/AuroraCursor";
 import { WixInboxChatWidget } from "@/components/landing/WixInboxChatWidget";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -9,15 +9,17 @@ import { themeBlockingScript } from "@/lib/theme-script";
 import { getLocale } from "@/i18n/locale";
 import "./globals.css";
 
-const inter = Inter({
+const sans = Be_Vietnam_Pro({
   variable: "--ff-body",
   subsets: ["latin", "vietnamese"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
-const display = Plus_Jakarta_Sans({
+const display = Be_Vietnam_Pro({
   variable: "--ff-display",
   subsets: ["latin", "vietnamese"],
+  weight: ["700", "800", "900"],
   display: "swap",
 });
 
@@ -63,7 +65,7 @@ export default async function RootLayout({
     <html
       lang={locale}
       suppressHydrationWarning
-      className={`${inter.variable} ${display.variable} h-full antialiased`}
+      className={`${sans.variable} ${display.variable} h-full antialiased`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBlockingScript }} />
