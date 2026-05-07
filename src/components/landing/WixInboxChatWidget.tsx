@@ -58,20 +58,21 @@ export function WixInboxChatWidget() {
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const cleaned = message.trim();
-    if (!cleaned) return;
+    if (!cleaned || sendState === "sending") return;
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `outgoing-${Date.now()}`,
+        role: "outgoing",
+        text: cleaned,
+      },
+    ]);
+    setMessage("");
+    setSendState("sending");
+    setHelperText("Sending...");
 
     try {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `outgoing-${Date.now()}`,
-          role: "outgoing",
-          text: cleaned,
-        },
-      ]);
-      setSendState("sending");
-      setHelperText("Sending...");
-
       const visitorId = getVisitorId();
       const response = await fetch("/api/wix-chat", {
         method: "POST",
@@ -87,7 +88,6 @@ export function WixInboxChatWidget() {
       }
 
       setSendState("sent");
-      setMessage("");
       setHelperText("Sent. Team will reply soon.");
     } catch {
       setSendState("error");
@@ -98,8 +98,8 @@ export function WixInboxChatWidget() {
   return (
     <div className="fixed bottom-5 right-5 z-50">
       {open ? (
-        <div className="w-[min(92vw,368px)] overflow-hidden rounded-3xl border border-white/45 bg-gradient-to-b from-white/85 to-white/70 shadow-[0_20px_40px_rgba(14,20,31,0.24),0_2px_8px_rgba(14,20,31,0.14)] backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200">
-          <div className="flex items-start justify-between gap-3 border-b border-black/5 bg-[linear-gradient(120deg,color-mix(in_srgb,var(--brand)_10%,white),rgba(255,255,255,0.35))] px-4 py-3">
+        <div className="w-[min(92vw,368px)] overflow-hidden rounded-3xl border border-[color:var(--line)] bg-[color:var(--surface-glass)] shadow-[0_20px_40px_rgba(14,20,31,0.24),0_2px_8px_rgba(14,20,31,0.14)] backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200">
+          <div className="flex items-start justify-between gap-3 border-b border-[color:var(--line)] bg-[linear-gradient(120deg,color-mix(in_srgb,var(--brand)_14%,var(--surface)),var(--surface))] px-4 py-3">
             <div>
               <h3 className="text-sm font-semibold text-[color:var(--fg)]">GEMS UNITED</h3>
               <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-[color:var(--muted)]">
@@ -112,25 +112,25 @@ export function WixInboxChatWidget() {
               onClick={() => {
                 setOpen(false);
               }}
-              className="cursor-pointer rounded-full border border-black/10 bg-white/60 px-2.5 py-1 text-xs text-[color:var(--muted)] transition hover:bg-white hover:text-[color:var(--fg)]"
+              className="cursor-pointer rounded-full border border-[color:var(--line)] bg-[color:color-mix(in_srgb,var(--surface)_70%,transparent)] px-2.5 py-1 text-xs text-[color:var(--fg)] transition hover:bg-[color:var(--surface)] hover:text-[color:var(--brand)]"
               aria-label="Close chat"
             >
               Close
             </button>
           </div>
 
-          <div className="space-y-3 bg-white/30 px-4 py-4">
-            <div className="mx-auto w-fit rounded-full bg-black/10 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-[color:var(--muted)]">
+          <div className="space-y-3 bg-[color:color-mix(in_srgb,var(--surface)_55%,transparent)] px-4 py-4">
+            <div className="mx-auto w-fit rounded-full bg-[color:color-mix(in_srgb,var(--fg)_10%,transparent)] px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-[color:var(--muted)]">
               Today
             </div>
-            <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+            <div className="max-h-64 space-y-2 overflow-y-auto px-2 pb-7">
               {messages.map((item) => (
                 <div
                   key={item.id}
                   className={
                     item.role === "outgoing"
                       ? "ml-8 rounded-2xl rounded-br-md bg-gradient-to-br from-[color:var(--brand)] to-[color:color-mix(in_srgb,var(--brand)_72%,#000)] px-3 py-2 text-sm text-white shadow-[0_8px_18px_color-mix(in_srgb,var(--brand)_35%,transparent)]"
-                      : "mr-8 rounded-2xl rounded-bl-md border border-black/10 bg-white/70 px-3 py-2 text-sm text-slate-800"
+                      : "mr-8 rounded-2xl rounded-bl-md border border-[color:var(--line)] bg-[color:var(--surface)] px-3 py-2 text-sm text-[color:var(--fg)]"
                   }
                 >
                   {item.text}
@@ -140,18 +140,28 @@ export function WixInboxChatWidget() {
             <p className="text-xs text-[color:var(--muted)]">{helperText}</p>
           </div>
 
-          <form onSubmit={onSubmit} className="border-t border-black/5 bg-white/40 p-3">
-            <div className="flex items-end gap-2 rounded-2xl border border-black/10 bg-white/70 p-2 backdrop-blur">
+          <form onSubmit={onSubmit} className="border-t border-[color:var(--line)] bg-[color:color-mix(in_srgb,var(--surface)_60%,transparent)] p-3">
+            <div className="flex items-end gap-2 rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface)] p-2 backdrop-blur">
               <textarea
                 value={message}
                 onChange={(event) => {
                   setMessage(event.target.value);
                   if (sendState !== "idle") setSendState("idle");
                 }}
+                onKeyDown={(event) => {
+                  if (
+                    event.key === "Enter" &&
+                    !event.shiftKey &&
+                    !event.nativeEvent.isComposing
+                  ) {
+                    event.preventDefault();
+                    event.currentTarget.form?.requestSubmit();
+                  }
+                }}
                 placeholder="Write your message..."
                 rows={2}
                 maxLength={1000}
-                className="min-h-[48px] flex-1 resize-none bg-transparent px-1 py-1 text-sm text-slate-900 outline-none placeholder:text-slate-400"
+                className="min-h-[48px] flex-1 resize-none bg-transparent px-1 py-1 text-sm text-[color:var(--fg)] outline-none placeholder:text-[color:var(--muted)]"
               />
               <button
                 type="submit"
