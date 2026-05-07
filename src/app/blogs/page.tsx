@@ -23,7 +23,7 @@ export default async function BlogsPage() {
 
   return (
     <div className="bg-[color:var(--bg)]">
-      <Header locale={locale} />
+      <Header locale={locale} initialSolid />
       <main id="main-content">
         <section className="bg-[color:var(--surface)] pb-40 pt-20 md:pb-40 md:pt-28">
           <div className="mx-auto w-full max-w-7xl px-5 md:px-8">

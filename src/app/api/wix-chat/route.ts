@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { DEFAULT_WIX_SITE_ID } from "@/lib/constants";
+import { logger } from "@/lib/logger";
 
 const WIX_INBOX_API_BASE = "https://www.wixapis.com/inbox/v2";
 const MAX_MESSAGE_LENGTH = 1000;
@@ -7,6 +8,10 @@ const MAX_MESSAGE_LENGTH = 1000;
 interface ChatPayload {
   message?: string;
   anonymousVisitorId?: string;
+}
+
+function toSafeErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Unknown error";
 }
 
 function getAuthConfig() {
@@ -128,7 +133,7 @@ export async function POST(request: Request) {
     await sendParticipantMessage(apiToken, siteId, conversationId, message);
     return NextResponse.json({ ok: true, conversationId });
   } catch (error) {
-    console.error("[wix-chat] Failed to send participant message:", error);
+    logger.error("[wix-chat] Failed to send participant message:", toSafeErrorMessage(error));
     return NextResponse.json(
       { ok: false, error: "Unable to send message to Wix Inbox." },
       { status: 502 },

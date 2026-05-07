@@ -1,6 +1,7 @@
 import { blogItems, careers, designItems } from "@/data/landing";
 import { DEFAULT_WIX_SITE_ID } from "@/lib/constants";
 import type { BlogItem, CareerItem, DesignItem } from "@/types/landing";
+import { logger } from "@/lib/logger";
 
 interface WixDataQueryResponse<T = Record<string, unknown>> {
   dataItems?: Array<{ data?: T }>;
@@ -10,6 +11,10 @@ interface LandingContent {
   careers: CareerItem[];
   blogs: BlogItem[];
   designs: DesignItem[];
+}
+
+function toSafeErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Unknown error";
 }
 
 const WIX_API_BASE = "https://www.wixapis.com/wix-data/v2/items/query";
@@ -288,7 +293,7 @@ export async function getAllCareers(): Promise<CareerItem[]> {
         .map((raw, idx) => normalizeCareer(raw, idx));
     }
   } catch (error) {
-    console.warn("[wix-headless] Falling back to local careers.", error);
+    logger.warn("[wix-headless] Falling back to local careers.", toSafeErrorMessage(error));
   }
 
   return careers;
@@ -357,7 +362,7 @@ export async function getAllBlogs(): Promise<BlogItem[]> {
       return blogsRaw.map(normalizeBlog);
     }
   } catch (error) {
-    console.warn("[wix-headless] Falling back to local blogs.", error);
+    logger.warn("[wix-headless] Falling back to local blogs.", toSafeErrorMessage(error));
   }
 
   return blogItems;
@@ -401,7 +406,7 @@ export async function getLandingContent(): Promise<LandingContent> {
       }
     }
   } catch (error) {
-    console.warn("[wix-headless] Falling back to local content.", error);
+    logger.warn("[wix-headless] Falling back to local content.", toSafeErrorMessage(error));
   }
 
   return result;

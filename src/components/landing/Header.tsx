@@ -12,6 +12,7 @@ import { ThemeToggle } from "./ThemeToggle";
 
 interface HeaderProps {
   locale: Locale;
+  initialSolid?: boolean;
 }
 
 const FOCUSABLE_SELECTOR =
@@ -119,7 +120,7 @@ function useMobileDrawer(isOpen: boolean, onClose: () => void) {
   return drawerRef;
 }
 
-export function Header({ locale }: HeaderProps) {
+export function Header({ locale, initialSolid = false }: HeaderProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const scrolled = useScrolled();
@@ -143,7 +144,9 @@ export function Header({ locale }: HeaderProps) {
         "sticky top-0 z-50 transition-[border-color,background-color]",
         scrolled
           ? "border-b border-[color:var(--line)] bg-[color:var(--surface-glass)] backdrop-blur-xl"
-          : "border-b border-transparent bg-transparent",
+          : initialSolid
+            ? "border-b border-transparent bg-[color:var(--surface)]"
+            : "border-b border-transparent bg-transparent",
       ].join(" ")}
     >
       <div className="mx-auto flex h-24 w-full max-w-7xl items-center justify-between px-5 md:h-28 md:px-8">

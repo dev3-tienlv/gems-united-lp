@@ -17,7 +17,7 @@ export default async function ContactPage() {
   const locale = await getLocale();
   return (
     <div className="bg-[color:var(--bg)]">
-      <Header locale={locale} />
+      <Header locale={locale} initialSolid />
       <main id="main-content">
         <ContactSection locale={locale} sectionClassName="bg-[color:var(--surface)] pb-40 pt-20 md:pb-40 md:pt-28" />
       </main>
