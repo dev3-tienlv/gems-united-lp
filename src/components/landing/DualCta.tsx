@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Magnetic } from "@/components/effects/Magnetic";
 import { Reveal } from "@/components/motion/Reveal";
 import { getMessages } from "@/i18n/messages";
 import type { Locale } from "@/i18n/types";
@@ -31,12 +32,14 @@ export function DualCta({ locale }: DualCtaProps) {
             <article className="rounded-3xl border border-white/20 bg-white/10 p-7 backdrop-blur">
               <h3 className="font-display text-2xl font-extrabold">{text.partnerTitle}</h3>
               <p className="mt-3 text-sm leading-6 text-white/85">{text.partnerDesc}</p>
-              <Link
-                href="/#contact"
-                className="mt-6 inline-flex min-h-11 items-center rounded-full bg-[color:var(--accent)] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[color:var(--accent-strong)]"
-              >
-                {text.partnerCta}
-              </Link>
+              <Magnetic className="mt-6 inline-flex">
+                <Link
+                  href="/#contact"
+                  className="inline-flex min-h-11 items-center rounded-full bg-[color:var(--accent)] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[color:var(--accent-strong)]"
+                >
+                  {text.partnerCta}
+                </Link>
+              </Magnetic>
             </article>
           </Reveal>
 
@@ -44,12 +47,14 @@ export function DualCta({ locale }: DualCtaProps) {
             <article className="rounded-3xl border border-white/20 bg-white/10 p-7 backdrop-blur">
               <h3 className="font-display text-2xl font-extrabold">{text.careerTitle}</h3>
               <p className="mt-3 text-sm leading-6 text-white/85">{text.careerDesc}</p>
-              <Link
-                href="/careers"
-                className="mt-6 inline-flex min-h-11 items-center rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-[color:var(--ink)] transition hover:bg-[color:var(--soft)]"
-              >
-                {text.careerCta}
-              </Link>
+              <Magnetic className="mt-6 inline-flex">
+                <Link
+                  href="/careers"
+                  className="inline-flex min-h-11 items-center rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-[color:var(--ink)] transition hover:bg-[color:var(--soft)]"
+                >
+                  {text.careerCta}
+                </Link>
+              </Magnetic>
             </article>
           </Reveal>
         </div>

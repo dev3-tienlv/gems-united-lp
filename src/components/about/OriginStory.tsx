@@ -26,20 +26,13 @@ export function OriginStory({ locale }: OriginStoryProps) {
           <article className="relative p-4 md:p-6">
             <div className="animate-float-gentle">
               <Image
-                src="/logo-3d.png"
+                src="/journey-3d-v2.png"
                 alt={text.imageAlt}
-                width={300}
-                height={300}
-                sizes="300px"
-                className="mx-auto h-60 w-60 object-contain drop-shadow-[0_24px_30px_rgba(27,19,50,0.22)]"
+                width={420}
+                height={420}
+                sizes="(max-width: 768px) 320px, 420px"
+                className="mx-auto h-72 w-72 object-contain drop-shadow-[0_24px_30px_rgba(27,19,50,0.22)] md:h-[420px] md:w-[420px]"
               />
-            </div>
-            <div className="mt-4 flex items-center justify-center gap-2 text-[13px] font-semibold text-[color:var(--muted)]">
-              <span>{text.route.from}</span>
-              <Arrow />
-              <span>{text.route.to1}</span>
-              <Arrow />
-              <span>{text.route.to2}</span>
             </div>
           </article>
         </Reveal>
@@ -48,10 +41,3 @@ export function OriginStory({ locale }: OriginStoryProps) {
   );
 }
 
-function Arrow() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-      <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}

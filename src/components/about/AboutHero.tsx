@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Magnetic } from "@/components/effects/Magnetic";
 import { Reveal } from "@/components/motion/Reveal";
 import { getMessages } from "@/i18n/messages";
 import type { Locale } from "@/i18n/types";
@@ -28,32 +29,37 @@ export function AboutHero({ locale }: AboutHeroProps) {
             {text.subtitle}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              href="/#contact"
-              className="inline-flex min-h-11 items-center rounded-full bg-[color:var(--accent)] px-7 py-3 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(126,217,87,0.34)] transition hover:bg-[color:var(--accent-strong)]"
-            >
-              {text.ctaPrimary}
-            </Link>
-            <Link
-              href="/careers"
-              className="inline-flex min-h-11 items-center rounded-full border border-[color:var(--line)] bg-[color:var(--surface)] px-7 py-3 text-sm font-semibold text-[color:var(--ink)] transition hover:border-[color:var(--brand-light)] hover:text-[color:var(--brand)]"
-            >
-              {text.ctaSecondary}
-            </Link>
+            <Magnetic>
+              <Link
+                href="/#contact"
+                className="inline-flex min-h-11 items-center rounded-full bg-[color:var(--accent)] px-7 py-3 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(126,217,87,0.34)] transition hover:bg-[color:var(--accent-strong)]"
+              >
+                {text.ctaPrimary}
+              </Link>
+            </Magnetic>
+            <Magnetic>
+              <Link
+                href="/careers"
+                className="inline-flex min-h-11 items-center rounded-full border border-[color:var(--line)] bg-[color:var(--surface)] px-7 py-3 text-sm font-semibold text-[color:var(--ink)] transition hover:border-[color:var(--brand-light)] hover:text-[color:var(--brand)]"
+              >
+                {text.ctaSecondary}
+              </Link>
+            </Magnetic>
           </div>
         </Reveal>
 
         <Reveal delay={0.1} className="relative flex items-center justify-center md:justify-end">
-          <div className="relative animate-float-gentle">
+          <div className="group relative animate-float-gentle [perspective:1200px]">
+            <div className="pointer-events-none absolute left-1/2 top-1/2 h-[72%] w-[72%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_50%_45%,rgba(126,217,87,0.25),rgba(111,66,201,0.12)_45%,transparent_70%)] blur-2xl" />
             <Image
-              src="/logo-main.png"
+              src="/mission-3d.png"
               alt={text.imageAlt}
               width={560}
               height={560}
               priority
               fetchPriority="high"
               sizes="(max-width: 768px) 360px, 560px"
-              className="h-[360px] w-[360px] object-contain drop-shadow-[0_28px_40px_rgba(27,19,50,0.22)] md:h-[560px] md:w-[560px]"
+              className="relative h-[360px] w-[360px] object-contain drop-shadow-[0_28px_40px_rgba(27,19,50,0.22)] transition-transform duration-700 [transform:translateZ(0)] will-change-transform group-hover:[transform:rotateX(10deg)_rotateY(-14deg)_translateZ(26px)] md:h-[560px] md:w-[560px]"
             />
           </div>
         </Reveal>

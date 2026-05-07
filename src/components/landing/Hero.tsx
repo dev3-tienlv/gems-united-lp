@@ -1,8 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
+import { Magnetic } from "@/components/effects/Magnetic";
 import { Reveal } from "@/components/motion/Reveal";
 import { getMessages } from "@/i18n/messages";
 import type { Locale } from "@/i18n/types";
+import { HeroInteractiveVisual } from "@/components/landing/HeroInteractiveVisual";
 
 interface HeroProps {
   locale: Locale;
@@ -31,48 +32,37 @@ export function Hero({ locale }: HeroProps) {
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link
-              href="/#contact"
-              className="group inline-flex items-center gap-2 rounded-full bg-[color:var(--accent)] px-7 py-3.5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(126,217,87,0.35)] transition hover:bg-[color:var(--accent-strong)]"
-            >
-              {text.hero.ctaPrimary}
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 14 14"
-                fill="none"
-                className="transition group-hover:translate-x-0.5"
-                aria-hidden="true"
+            <Magnetic>
+              <Link
+                href="/#contact"
+                className="group inline-flex items-center gap-2 rounded-full bg-[color:var(--accent)] px-7 py-3.5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(126,217,87,0.35)] transition hover:bg-[color:var(--accent-strong)]"
               >
-                <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </Link>
-            <Link
-              href="/#designs"
-              className="inline-flex items-center gap-2 rounded-full border border-[color:var(--line)] bg-[color:var(--surface)] px-7 py-3.5 text-sm font-semibold text-[color:var(--ink-2)] transition hover:border-[color:var(--brand-light)] hover:text-[color:var(--brand)]"
-            >
-              {text.hero.ctaSecondary}
-            </Link>
+                {text.hero.ctaPrimary}
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 14 14"
+                  fill="none"
+                  className="transition group-hover:translate-x-0.5"
+                  aria-hidden="true"
+                >
+                  <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </Link>
+            </Magnetic>
+            <Magnetic>
+              <Link
+                href="/#designs"
+                className="inline-flex items-center gap-2 rounded-full border border-[color:var(--line)] bg-[color:var(--surface)] px-7 py-3.5 text-sm font-semibold text-[color:var(--ink-2)] transition hover:border-[color:var(--brand-light)] hover:text-[color:var(--brand)]"
+              >
+                {text.hero.ctaSecondary}
+              </Link>
+            </Magnetic>
           </div>
         </Reveal>
 
         <Reveal delay={0.1} className="relative flex items-center justify-center">
-          <div className="relative">
-            <div className="pointer-events-none absolute -left-8 -top-8 h-24 w-24 rounded-full bg-[color:var(--brand)]/14" />
-            <div className="pointer-events-none absolute -bottom-8 -right-8 h-24 w-24 rounded-full bg-[color:var(--accent)]/12" />
-            <div className="relative animate-float-gentle">
-              <Image
-                src="/logo-3d.png"
-                alt="GEMS United 3D logo"
-                width={430}
-                height={430}
-                priority
-                fetchPriority="high"
-                sizes="(max-width: 768px) 360px, 430px"
-                className="h-[360px] w-[360px] object-contain drop-shadow-[0_22px_24px_rgba(27,19,50,0.22)] md:h-[430px] md:w-[430px]"
-              />
-            </div>
-          </div>
+          <HeroInteractiveVisual />
         </Reveal>
       </div>
 

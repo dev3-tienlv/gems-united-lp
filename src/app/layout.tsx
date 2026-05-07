@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { AuroraCursor } from "@/components/effects/AuroraCursor";
 import { WixInboxChatWidget } from "@/components/landing/WixInboxChatWidget";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { ORG_DESCRIPTION, ORG_NAME, SITE_URL } from "@/lib/constants";
@@ -77,6 +78,7 @@ export default async function RootLayout({
         </a>
         {children}
         <WixInboxChatWidget />
+        <AuroraCursor />
       </body>
     </html>
   );
