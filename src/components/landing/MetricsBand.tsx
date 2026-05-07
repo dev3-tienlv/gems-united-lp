@@ -6,7 +6,7 @@ export interface MetricItem {
 }
 
 interface MetricsBandProps {
-  metrics: MetricItem[];
+  metrics: readonly MetricItem[];
   accent?: "brand" | "accent";
 }
 
