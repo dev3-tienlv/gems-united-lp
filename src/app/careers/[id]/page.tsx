@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+
+export const revalidate = 900;
+
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -187,7 +190,7 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
           </div>
         </section>
 
-        <section className="bg-[color:var(--surface)] py-20 md:py-24">
+        <section className="bg-[color:var(--surface)] pb-40 pt-20 md:pb-40 md:pt-24">
           <div className="mx-auto grid w-full max-w-7xl items-start gap-14 px-5 md:grid-cols-[1.5fr_1fr] md:px-8">
             <Reveal>
               <p className="text-[12px] font-bold uppercase tracking-[0.22em] text-[color:var(--brand)]">

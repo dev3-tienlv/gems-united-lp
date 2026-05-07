@@ -60,6 +60,7 @@ export function CareerCard({ item, locale }: { item: CareerItem; locale: Locale 
   return (
     <Link
       href={`/careers/${item.id}`}
+      prefetch={false}
       className="group relative block aspect-[5/6] overflow-hidden rounded-3xl border-2 border-[color:var(--brand)] bg-[color:var(--soft)] focus-visible:ring-2 focus-visible:ring-[color:var(--brand-light)] md:aspect-[5/5.5] lg:aspect-square"
       aria-label={`${text.cards.hiring} ${item.title}`}
     >
@@ -177,6 +178,7 @@ export function BlogCard({ item, locale }: { item: BlogItem; locale: Locale }) {
   return (
     <Link
       href={readHref}
+      prefetch={false}
       className="group block rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand-light)]"
       aria-label={item.title}
     >

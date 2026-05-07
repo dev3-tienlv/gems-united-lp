@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+
+export const revalidate = 600;
+
 import { Footer } from "@/components/landing/Footer";
 import { Header } from "@/components/landing/Header";
 import { SectionTitle } from "@/components/landing/SectionTitle";

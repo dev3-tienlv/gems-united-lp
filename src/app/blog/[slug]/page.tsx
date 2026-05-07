@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+
+export const revalidate = 900;
+
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -219,7 +222,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
           </div>
         </section>
 
-        <section className="bg-[color:var(--surface)] pb-24">
+        <section className="bg-[color:var(--surface)] pb-40 md:pb-40">
           <div className="mx-auto w-full max-w-3xl px-5 md:px-8">
             <Reveal delay={0.04}>
               {mediaItems.length > 0 ? (

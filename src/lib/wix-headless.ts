@@ -1,4 +1,5 @@
 import { blogItems, careers, designItems } from "@/data/landing";
+import { unstable_cache } from "next/cache";
 import { DEFAULT_WIX_SITE_ID } from "@/lib/constants";
 import type { BlogItem, CareerItem, DesignItem } from "@/types/landing";
 import { logger } from "@/lib/logger";
@@ -259,27 +260,12 @@ function normalizeDesign(raw: Record<string, unknown>, idx: number): DesignItem 
 }
 
 export async function getCareerById(id: string): Promise<CareerItem | null> {
-  const { careersCollectionId } = getWixEnv();
-
-  if (careersCollectionId) {
-    try {
-      const filter = { _id: { $eq: id } };
-      const careersRaw = await queryCollection<Record<string, unknown>>(careersCollectionId, {
-        limit: 1,
-        filter,
-      });
-      if (careersRaw.length > 0) {
-        return normalizeCareer(careersRaw[0]!, 0);
-      }
-    } catch {
-      // Fall through to local fallback list.
-    }
-  }
-
-  return careers.find((c) => c.id === id) ?? null;
+  const allCareers = await getAllCareers();
+  return allCareers.find((career) => career.id === id) ?? null;
 }
 
-export async function getAllCareers(): Promise<CareerItem[]> {
+const getAllCareersCached = unstable_cache(
+  async (): Promise<CareerItem[]> => {
   const { careersCollectionId } = getWixEnv();
   if (!careersCollectionId) return careers;
 
@@ -297,13 +283,18 @@ export async function getAllCareers(): Promise<CareerItem[]> {
   }
 
   return careers;
+  },
+  ["wix-all-careers"],
+  { revalidate: REVALIDATE_SECONDS },
+);
+
+export async function getAllCareers(): Promise<CareerItem[]> {
+  return getAllCareersCached();
 }
 
 export async function getBlogBySlug(slug: string): Promise<BlogItem | null> {
   const normalizedInput = decodeURIComponent(slug).trim();
   const normalizedKey = normalizeSlugKey(normalizedInput);
-  const { blogsCollectionId } = getWixEnv();
-
   const matchBlog = (list: BlogItem[]): BlogItem | null => {
     const direct = list.find((blog) => blog.slug === normalizedInput);
     if (direct) return direct;
@@ -332,25 +323,17 @@ export async function getBlogBySlug(slug: string): Promise<BlogItem | null> {
     );
   };
 
-  if (blogsCollectionId) {
-    try {
-      const blogsRaw = await queryCollection<Record<string, unknown>>(blogsCollectionId, {
-        limit: 100,
-      });
-      if (blogsRaw.length > 0) {
-        const normalizedBlogs = blogsRaw.map(normalizeBlog);
-        const matched = matchBlog(normalizedBlogs);
-        if (matched) return matched;
-      }
-    } catch {
-      // Fall through to cached/fallback landing content.
-    }
+  const allBlogs = await getAllBlogs();
+  const matchedBlog = matchBlog(allBlogs);
+  if (matchedBlog) {
+    return matchedBlog;
   }
 
   return matchBlog(blogItems);
 }
 
-export async function getAllBlogs(): Promise<BlogItem[]> {
+const getAllBlogsCached = unstable_cache(
+  async (): Promise<BlogItem[]> => {
   const { blogsCollectionId } = getWixEnv();
   if (!blogsCollectionId) return blogItems;
 
@@ -366,6 +349,13 @@ export async function getAllBlogs(): Promise<BlogItem[]> {
   }
 
   return blogItems;
+  },
+  ["wix-all-blogs"],
+  { revalidate: REVALIDATE_SECONDS },
+);
+
+export async function getAllBlogs(): Promise<BlogItem[]> {
+  return getAllBlogsCached();
 }
 
 export async function getLandingContent(): Promise<LandingContent> {
@@ -376,37 +366,42 @@ export async function getLandingContent(): Promise<LandingContent> {
     designs: designItems,
   };
 
-  try {
-    if (careersCollectionId) {
-      const careersRaw = await queryCollection<Record<string, unknown>>(careersCollectionId, {
-        limit: 12,
-      });
-      if (careersRaw.length > 0) {
-        result.careers = careersRaw
-          .filter((item) => item.hidden !== true)
-          .map((raw, idx) => normalizeCareer(raw, idx));
-      }
-    }
+  const [careersQuery, blogsQuery, designsQuery] = await Promise.allSettled([
+    careersCollectionId
+      ? queryCollection<Record<string, unknown>>(careersCollectionId, {
+          limit: 12,
+        })
+      : Promise.resolve([]),
+    blogsCollectionId
+      ? queryCollection<Record<string, unknown>>(blogsCollectionId, {
+          limit: 3,
+        })
+      : Promise.resolve([]),
+    designsCollectionId
+      ? queryCollection<Record<string, unknown>>(designsCollectionId, {
+          limit: 12,
+        })
+      : Promise.resolve([]),
+  ]);
 
-    if (blogsCollectionId) {
-      const blogsRaw = await queryCollection<Record<string, unknown>>(blogsCollectionId, {
-        limit: 3,
-      });
-      if (blogsRaw.length > 0) {
-        result.blogs = blogsRaw.map(normalizeBlog);
-      }
-    }
+  if (careersQuery.status === "fulfilled" && careersQuery.value.length > 0) {
+    result.careers = careersQuery.value
+      .filter((item) => item.hidden !== true)
+      .map((raw, idx) => normalizeCareer(raw, idx));
+  } else if (careersQuery.status === "rejected") {
+    logger.warn("[wix-headless] Falling back to local careers.", toSafeErrorMessage(careersQuery.reason));
+  }
 
-    if (designsCollectionId) {
-      const designsRaw = await queryCollection<Record<string, unknown>>(designsCollectionId, {
-        limit: 12,
-      });
-      if (designsRaw.length > 0) {
-        result.designs = designsRaw.map((raw, idx) => normalizeDesign(raw, idx));
-      }
-    }
-  } catch (error) {
-    logger.warn("[wix-headless] Falling back to local content.", toSafeErrorMessage(error));
+  if (blogsQuery.status === "fulfilled" && blogsQuery.value.length > 0) {
+    result.blogs = blogsQuery.value.map(normalizeBlog);
+  } else if (blogsQuery.status === "rejected") {
+    logger.warn("[wix-headless] Falling back to local blogs.", toSafeErrorMessage(blogsQuery.reason));
+  }
+
+  if (designsQuery.status === "fulfilled" && designsQuery.value.length > 0) {
+    result.designs = designsQuery.value.map((raw, idx) => normalizeDesign(raw, idx));
+  } else if (designsQuery.status === "rejected") {
+    logger.warn("[wix-headless] Falling back to local designs.", toSafeErrorMessage(designsQuery.reason));
   }
 
   return result;

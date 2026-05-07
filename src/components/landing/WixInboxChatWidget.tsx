@@ -190,7 +190,6 @@ export function WixInboxChatWidget() {
               width={42}
               height={42}
               className="h-10 w-10 object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.25)]"
-              priority
             />
           </button>
         </div>

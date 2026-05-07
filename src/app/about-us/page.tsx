@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+
+export const revalidate = 3600;
+
 import { AboutHero } from "@/components/about/AboutHero";
 import { CapabilityPillars } from "@/components/about/CapabilityPillars";
 import { GemsterCulture } from "@/components/about/GemsterCulture";
