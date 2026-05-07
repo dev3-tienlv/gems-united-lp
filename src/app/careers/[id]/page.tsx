@@ -262,8 +262,9 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
               )}
             </Reveal>
 
-            <Reveal delay={0.06} className="md:sticky md:top-24 md:z-10 md:self-start">
-              <aside className="rounded-3xl border border-[color:var(--line)] bg-[color:var(--soft)] p-7 shadow-[0_12px_40px_rgba(25,12,52,0.06)]">
+            <div className="md:sticky md:top-[50vh] md:z-10 md:-translate-y-1/2 md:self-start">
+              <Reveal delay={0.06}>
+                <aside className="rounded-3xl border border-[color:var(--line)] bg-[color:var(--soft)] p-7 shadow-[0_12px_40px_rgba(25,12,52,0.06)]">
                 <h3 className="font-display text-lg font-bold text-[color:var(--ink)]">
                   {text.common.quickFacts}
                 </h3>
@@ -296,7 +297,8 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
                   {text.common.applyRole}
                 </a>
               </aside>
-            </Reveal>
+              </Reveal>
+            </div>
           </div>
         </section>
       </main>
