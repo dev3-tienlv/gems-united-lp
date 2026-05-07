@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Be_Vietnam_Pro } from "next/font/google";
+import { Inter } from "next/font/google";
 import { AuroraCursor } from "@/components/effects/AuroraCursor";
 import { WixInboxChatWidget } from "@/components/landing/WixInboxChatWidget";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -9,17 +9,15 @@ import { themeBlockingScript } from "@/lib/theme-script";
 import { getLocale } from "@/i18n/locale";
 import "./globals.css";
 
-const sans = Be_Vietnam_Pro({
+const sans = Inter({
   variable: "--ff-body",
   subsets: ["latin", "vietnamese"],
-  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
-const display = Be_Vietnam_Pro({
+const display = Inter({
   variable: "--ff-display",
   subsets: ["latin", "vietnamese"],
-  weight: ["700", "800", "900"],
   display: "swap",
 });
 
