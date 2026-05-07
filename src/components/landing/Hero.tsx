@@ -75,14 +75,14 @@ function PurpleBlobs() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
       <svg
-        className="absolute -right-24 -top-20 h-[640px] w-[640px] text-[color:var(--brand)]"
+        className="absolute -right-44 -top-44 h-[460px] w-[460px] text-[color:var(--brand)] opacity-35 blur-[2px] sm:-right-36 sm:-top-36 sm:h-[540px] sm:w-[540px] sm:opacity-45 md:-right-24 md:-top-20 md:h-[640px] md:w-[640px] md:opacity-100 md:blur-0"
         viewBox="0 0 600 600"
         fill="currentColor"
       >
         <path d="M421,323Q380,396,302,420Q224,444,152,396Q80,348,73,266Q66,184,143,140Q220,96,304,93Q388,90,431,165Q474,240,421,323Z" />
       </svg>
       <svg
-        className="absolute -right-12 top-48 h-[420px] w-[420px] text-[color:var(--brand-light)] opacity-80"
+        className="absolute -right-28 top-56 h-[280px] w-[280px] text-[color:var(--brand-light)] opacity-30 blur-[1px] sm:-right-20 sm:top-52 sm:h-[340px] sm:w-[340px] sm:opacity-45 md:-right-12 md:top-48 md:h-[420px] md:w-[420px] md:opacity-80 md:blur-0"
         viewBox="0 0 600 600"
         fill="currentColor"
       >
