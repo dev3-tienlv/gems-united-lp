@@ -37,7 +37,7 @@ function safeDecodeURIComponent(value: string): string {
 
 function injectImageStyle(attrs: string): string {
   const cleanedAttrs = attrs.replace(/\sstyle\s*=\s*["'][^"']*["']/i, "");
-  return `${cleanedAttrs} style="display:block;width:100%;height:100%;min-height:280px;max-height:none;margin:0;object-fit:cover;object-position:top;border-radius:16px;grid-column:span 1;grid-row:span 1;"`;
+  return `${cleanedAttrs} style="display:block;width:100%;height:100%;max-height:none;margin:0;object-fit:cover;object-position:center;border-radius:14px;"`;
 }
 
 function injectVideoStyle(attrs: string): string {
@@ -49,7 +49,7 @@ function normalizeArticleMedia(html: string): string {
   let output = html;
 
   output = output.replace(/<div\s+class=["']gallery["']>/gi, () => {
-    return '<div class="gallery" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:350px;gap:6px;">';
+    return '<div class="gallery" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));grid-auto-rows:clamp(150px,26vw,280px);gap:8px;">';
   });
 
   output = output.replace(/<img([^>]*)>/gi, (_full, attrs: string) => {
