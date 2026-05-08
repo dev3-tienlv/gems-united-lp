@@ -45,7 +45,18 @@ export function sanitizeBlogHtml(input: string): string {
     allowedTags: ALLOWED_TAGS,
     allowedAttributes: {
       a: ["href", "title", "rel", "target"],
-      img: ["src", "alt", "title", "loading", "width", "height"],
+      img: [
+        "src",
+        "srcset",
+        "sizes",
+        "alt",
+        "title",
+        "loading",
+        "decoding",
+        "fetchpriority",
+        "width",
+        "height",
+      ],
       video: ["src", "controls", "preload", "poster", "playsinline"],
       source: ["src", "type"],
       iframe: [

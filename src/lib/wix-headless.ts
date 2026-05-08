@@ -32,7 +32,7 @@ const WIX_API_BASE = "https://www.wixapis.com/wix-data/v2/items/query";
 const WIX_COLLECTIONS_API = "https://www.wixapis.com/wix-data/v2/data-collections";
 const WIX_BLOG_API_BASE = "https://www.wixapis.com/blog/v3/posts";
 const REVALIDATE_SECONDS = 300;
-const BLOG_CACHE_KEY = "wix-all-blogs-v2";
+const BLOG_CACHE_KEY = "wix-all-blogs-v4";
 
 export function getWixEnv() {
   return {

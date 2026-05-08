@@ -1,4 +1,10 @@
-import { toWixStaticImageUrl, toWixVideoUrl } from "@/lib/wix-media";
+import {
+  buildWixImageSrcset,
+  isWixStaticImage,
+  toWixStaticImageUrl,
+  toWixVideoUrl,
+  withWixImageDelivery,
+} from "@/lib/wix-media";
 
 type RichNode = Record<string, unknown>;
 
@@ -6,6 +12,12 @@ const IFRAME_ALLOW =
   "accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
 const IFRAME_SANDBOX = "allow-scripts allow-same-origin allow-presentation";
 const IFRAME_REFERRER = "strict-origin-when-cross-origin";
+
+const DEFAULT_RENDER_WIDTH = 1280;
+const GALLERY_RENDER_WIDTH = 800;
+
+const DEFAULT_SIZES = "(max-width: 768px) 100vw, 1024px";
+const GALLERY_SIZES = "(max-width: 768px) 50vw, 33vw";
 
 const WIX_DIMENSIONS_PATTERN = /\/v1\/(?:fill|fit|crop)\/w_(\d+)[\W_]*h_(\d+)/i;
 
@@ -34,14 +46,29 @@ function pickRichImageDimensions(image: RichNode | undefined): {
   };
 }
 
-function buildImgTag(url: string, alt: string, image?: RichNode): string {
-  const safeUrl = escapeHtml(url);
+interface BuildImgTagOptions {
+  alt: string;
+  image?: RichNode;
+  renderWidth?: number;
+  sizes?: string;
+}
+
+function buildImgTag(url: string, options: BuildImgTagOptions): string {
+  const { alt, image, renderWidth = DEFAULT_RENDER_WIDTH, sizes = DEFAULT_SIZES } = options;
+  const isWix = isWixStaticImage(url);
+  const deliveredUrl = isWix ? withWixImageDelivery(url, { width: renderWidth }) : url;
+  const srcset = isWix ? buildWixImageSrcset(url) : "";
+
+  const safeUrl = escapeHtml(deliveredUrl);
+  const safeSrcset = srcset ? ` srcset="${escapeHtml(srcset)}" sizes="${escapeHtml(sizes)}"` : "";
+
   const fromRich = pickRichImageDimensions(image);
   const fromUrl = pickWixImageDimensions(url);
   const width = fromRich.width ?? fromUrl.width;
   const height = fromRich.height ?? fromUrl.height;
   const dims = width && height ? ` width="${width}" height="${height}"` : "";
-  return `<img src="${safeUrl}" alt="${alt}" loading="lazy"${dims} />`;
+
+  return `<img src="${safeUrl}"${safeSrcset} alt="${alt}" loading="lazy" decoding="async"${dims} />`;
 }
 
 function toYoutubeEmbedUrl(url: string): string {
@@ -134,7 +161,7 @@ function renderImage(node: RichNode): string {
 
   const alt = typeof image?.altText === "string" ? escapeHtml(image.altText) : "";
   const caption = typeof imageData?.caption === "string" ? escapeHtml(imageData.caption) : "";
-  const imgTag = buildImgTag(imageUrl, alt, image);
+  const imgTag = buildImgTag(imageUrl, { alt, image });
   return `<figure>${imgTag}${caption ? `<figcaption>${caption}</figcaption>` : ""}</figure>`;
 }
 
@@ -178,7 +205,12 @@ function renderGallery(node: RichNode): string {
       if (!imageUrl) return "";
       const alt =
         typeof image?.altText === "string" ? escapeHtml(image.altText) : "";
-      return buildImgTag(imageUrl, alt, media);
+      return buildImgTag(imageUrl, {
+        alt,
+        image: media,
+        renderWidth: GALLERY_RENDER_WIDTH,
+        sizes: GALLERY_SIZES,
+      });
     })
     .filter(Boolean)
     .join("");
