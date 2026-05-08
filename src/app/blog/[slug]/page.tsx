@@ -221,7 +221,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
           </div>
         </section>
 
-        <section className="bg-[color:var(--surface)] pb-28 md:pb-32">
+        <section className="bg-[color:var(--surface)] pb-24 md:pb-28">
           <div className="mx-auto w-full max-w-7xl px-5 md:px-8">
             <Reveal delay={0.04}>
               {isHtml ? (

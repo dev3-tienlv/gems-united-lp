@@ -41,6 +41,7 @@ export default async function Home() {
                 eyebrow={text.home.valuesEyebrow}
                 title={text.home.valuesTitle}
                 description={text.home.valuesDescription}
+                maxWidth="4xl"
               />
             </Reveal>
             <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">

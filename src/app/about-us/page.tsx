@@ -51,6 +51,8 @@ export default async function AboutUsPage() {
                 eyebrow={text.about.values.eyebrow}
                 title={text.about.values.title}
                 description={text.about.values.description}
+                maxWidth="5xl"
+                titleClassName="md:whitespace-nowrap md:text-[2rem]"
               />
             </Reveal>
             <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-4">

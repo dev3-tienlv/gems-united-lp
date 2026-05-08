@@ -208,6 +208,7 @@ export const messagesEn = {
       quoteAuthor: "GEMS Founding Team",
       gallery: {
         main: "Coming soon - Gemster team moments",
+        yepBadge: "YEP 2025",
         side1: "Coming soon - Office life",
         side2: "Coming soon - Team events",
         officeBadge: "Office life",

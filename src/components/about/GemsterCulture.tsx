@@ -31,6 +31,9 @@ export function GemsterCulture({ locale }: GemsterCultureProps) {
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover"
               />
+              <span className="absolute left-3 top-3 rounded-full bg-black/60 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
+                {text.gallery.yepBadge}
+              </span>
             </article>
           </Reveal>
           <Reveal delay={0.04}>

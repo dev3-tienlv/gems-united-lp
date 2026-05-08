@@ -210,6 +210,7 @@ export const messagesVi = {
       quoteAuthor: "Đội ngũ sáng lập GEMS",
       gallery: {
         main: "Sắp cập nhật - khoảnh khắc Gemster",
+        yepBadge: "YEP 2025",
         side1: "Sắp cập nhật - không gian làm việc",
         side2: "Sắp cập nhật - hoạt động đội ngũ",
         officeBadge: "Office life",
