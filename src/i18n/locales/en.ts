@@ -165,7 +165,7 @@ export const messagesEn = {
     },
     capabilities: {
       eyebrow: "CAPABILITIES",
-      title: "Two pillars behind GEMS value",
+      title: "Two pillars behind GEMS United value",
       description: "We combine creative intelligence and operational excellence to help partners scale.",
       pillars: [
         {

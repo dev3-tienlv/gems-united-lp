@@ -167,7 +167,7 @@ export const messagesVi = {
     },
     capabilities: {
       eyebrow: "NĂNG LỰC CỐT LÕI",
-      title: "Hai trụ cột định hình giá trị GEMS",
+      title: "Hai trụ cột định hình giá trị GEMS United",
       description: "Kết hợp năng lực sáng tạo và vận hành để giúp đối tác tăng trưởng bền vững.",
       pillars: [
         {
