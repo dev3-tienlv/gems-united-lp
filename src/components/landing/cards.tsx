@@ -61,7 +61,7 @@ export function CareerCard({ item, locale }: { item: CareerItem; locale: Locale 
     <Link
       href={`/careers/${item.id}`}
       prefetch={false}
-      className="group relative block aspect-[5/6] overflow-hidden rounded-3xl border-2 border-[color:var(--brand)] bg-[color:var(--soft)] focus-visible:ring-2 focus-visible:ring-[color:var(--brand-light)] md:aspect-[5/5.5] lg:aspect-square"
+      className="group relative block aspect-square overflow-hidden rounded-3xl border-2 border-[color:var(--brand)] bg-[color:var(--soft)] focus-visible:ring-2 focus-visible:ring-[color:var(--brand-light)]"
       aria-label={`${text.cards.hiring} ${item.title}`}
     >
       {item.imageUrl ? (
@@ -70,7 +70,7 @@ export function CareerCard({ item, locale }: { item: CareerItem; locale: Locale 
           alt={item.title}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          className="object-cover transition duration-500 group-hover:scale-[1.04]"
+          className="object-cover object-center transition duration-500 group-hover:scale-[1.04]"
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[color:var(--brand)] via-[color:var(--brand-light)] to-[color:var(--brand-strong)] text-white">

@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Footer } from "@/components/landing/Footer";
+import { CareerCard } from "@/components/landing/cards";
 import { Header } from "@/components/landing/Header";
 import { Reveal } from "@/components/motion/Reveal";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -14,7 +15,8 @@ import { jobPostingJsonLd } from "@/lib/seo";
 import { getLocale } from "@/i18n/locale";
 import { getMessages } from "@/i18n/messages";
 import type { Locale } from "@/i18n/types";
-import { getCareerById } from "@/lib/wix-headless";
+import { getAllCareers, getCareerById } from "@/lib/wix-headless";
+import type { CareerItem } from "@/types/landing";
 
 interface CareerDetailPageProps {
   params: Promise<{ id: string }>;
@@ -29,7 +31,6 @@ function splitReadableLines(input?: string): string[] {
   return input
     .replace(/\r/g, "")
     .replace(/•/g, "\n•")
-    .replace(/\s-\s/g, "\n- ")
     .split(/\n+/)
     .map((line) => line.trim())
     .filter(Boolean);
@@ -39,11 +40,87 @@ function cleanLine(line: string): string {
   return line.replace(/^([\-•●]\s*)+/, "").trim();
 }
 
+interface HierarchicalLineItem {
+  text: string;
+  children: string[];
+}
+
+function buildHierarchicalLines(lines: string[]): HierarchicalLineItem[] {
+  const items: HierarchicalLineItem[] = [];
+  let currentParentIndex: number | null = null;
+
+  const appendToPrevious = (suffix: string): boolean => {
+    if (currentParentIndex !== null) {
+      const parentItem = items[currentParentIndex];
+      if (!parentItem) return false;
+
+      if (parentItem.children.length > 0) {
+        const lastChildIndex = parentItem.children.length - 1;
+        parentItem.children[lastChildIndex] = `${parentItem.children[lastChildIndex]} ${suffix}`.trim();
+        return true;
+      }
+
+      parentItem.text = `${parentItem.text} ${suffix}`.trim();
+      return true;
+    }
+
+    const lastItem = items[items.length - 1];
+    if (!lastItem) return false;
+    lastItem.text = `${lastItem.text} ${suffix}`.trim();
+    return true;
+  };
+
+  lines.forEach((line) => {
+    const text = cleanLine(line);
+    if (!text) return;
+
+    if (/^[([{]/.test(text) && appendToPrevious(text)) {
+      return;
+    }
+
+    const isParent = /[:：]$/.test(text);
+    if (isParent) {
+      items.push({ text, children: [] });
+      currentParentIndex = items.length - 1;
+      return;
+    }
+
+    if (currentParentIndex !== null) {
+      items[currentParentIndex]?.children.push(text);
+      return;
+    }
+
+    items.push({ text, children: [] });
+  });
+
+  return items;
+}
+
 function safeTypeFor(career: { type: string }, locale: Locale): string {
   if (career.type.length > TYPE_FIELD_MAX_LENGTH) {
     return locale === "vi" ? "Toàn thời gian" : "Full-time";
   }
   return career.type;
+}
+
+function normalizeMatchValue(value?: string): string {
+  return value?.trim().toLowerCase() ?? "";
+}
+
+function pickRelatedCareers(careers: CareerItem[], currentCareer: CareerItem, limit = 3): CareerItem[] {
+  const currentType = normalizeMatchValue(currentCareer.type);
+  const currentLocation = normalizeMatchValue(currentCareer.location);
+
+  return careers
+    .filter((item) => item.id !== currentCareer.id)
+    .map((item, index) => {
+      const typeMatch = normalizeMatchValue(item.type) === currentType ? 2 : 0;
+      const locationMatch = normalizeMatchValue(item.location) === currentLocation ? 1 : 0;
+      return { item, score: typeMatch + locationMatch, index };
+    })
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .slice(0, limit)
+    .map((entry) => entry.item);
 }
 
 export async function generateMetadata({ params }: CareerDetailPageProps): Promise<Metadata> {
@@ -80,9 +157,10 @@ export async function generateMetadata({ params }: CareerDetailPageProps): Promi
 
 export default async function CareerDetailPage({ params }: CareerDetailPageProps) {
   const [{ id }, locale] = await Promise.all([params, getLocale()]);
-  const career = await getCareerById(id);
+  const [career, allCareers] = await Promise.all([getCareerById(id), getAllCareers()]);
   if (!career) notFound();
   const text = getMessages(locale);
+  const relatedCareers = pickRelatedCareers(allCareers, career);
 
   const applyHref =
     career.applyUrl &&
@@ -90,13 +168,20 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
       ? career.applyUrl
       : CONTACT_MAILTO;
   const summaryLines = splitReadableLines(career.summary);
+  const summaryItems = buildHierarchicalLines(summaryLines);
   const safeType = safeTypeFor(career, locale);
   const sections = [
     { title: text.common.responsibilities, lines: splitReadableLines(career.responsibilities) },
     { title: text.common.requirements, lines: splitReadableLines(career.requirements) },
     { title: text.common.growthPath, lines: splitReadableLines(career.growthPath) },
     { title: text.common.benefits, lines: splitReadableLines(career.benefits) },
-  ].filter((section) => section.lines.length > 0);
+  ]
+    .map((section) => ({
+      title: section.title,
+      items: buildHierarchicalLines(section.lines),
+    }))
+    .filter((section) => section.items.length > 0);
+  const workScheduleItems = buildHierarchicalLines(splitReadableLines(career.workSchedule));
 
   return (
     <div className="bg-gradient-to-br from-[color:var(--hero-from)] via-[color:var(--hero-via)] to-[color:var(--hero-to)]">
@@ -170,8 +255,8 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
               <div
                 className={
                   career.imageUrl
-                    ? "relative w-full overflow-hidden rounded-[32px] shadow-[0_30px_80px_rgba(10,8,24,0.18)]"
-                    : "relative aspect-[4/5] w-full overflow-hidden rounded-[32px] bg-[color:var(--soft)] shadow-[0_30px_80px_rgba(10,8,24,0.18)]"
+                    ? "relative aspect-square w-full overflow-hidden rounded-[32px] shadow-[0_30px_80px_rgba(10,8,24,0.18)]"
+                    : "relative aspect-square w-full overflow-hidden rounded-[32px] bg-[color:var(--soft)] shadow-[0_30px_80px_rgba(10,8,24,0.18)]"
                 }
               >
                 {career.imageUrl ? (
@@ -181,7 +266,7 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
                     width={1026}
                     height={1026}
                     sizes="(max-width: 768px) 100vw, 600px"
-                    className="h-auto w-full"
+                    className="h-full w-full object-cover object-center"
                     priority
                   />
                 ) : (
@@ -197,8 +282,8 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
           </div>
         </section>
 
-        <section className="bg-[color:var(--surface)] pb-40 pt-20 md:pb-40 md:pt-24">
-          <div className="mx-auto grid w-full max-w-7xl items-start gap-14 px-5 md:grid-cols-[1.5fr_1fr] md:px-8">
+        <section className="bg-[color:var(--surface)] pb-20 pt-20 md:pb-24 md:pt-24">
+          <div className="mx-auto w-full max-w-7xl px-5 md:px-8">
             <Reveal>
               <p className="text-[12px] font-bold uppercase tracking-[0.22em] text-[color:var(--brand)]">
                 {text.common.roleOverview}
@@ -208,32 +293,67 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
               </h2>
 
               {sections.length > 0 ? (
-                <div className="mt-6 space-y-7">
-                  {sections.map((section, sectionIndex) => (
-                    <section key={section.title}>
-                      <h3 className="text-sm font-extrabold uppercase tracking-[0.14em] text-[color:var(--ink)]">
-                        {sectionIndex + 1}. {section.title}
-                      </h3>
-                      <ul className="mt-3 space-y-2 text-base leading-7 text-[color:var(--muted)] md:text-[17px]">
-                        {section.lines.map((line, lineIndex) => (
-                          <li
-                            key={`${section.title}-${lineIndex}`}
-                            className="flex gap-3"
+                <div className="mt-8 space-y-6">
+                  {sections.map((section, sectionIndex) => {
+                    const sectionNumber = sectionIndex + 1;
+                    return (
+                      <section
+                        key={section.title}
+                      className="rounded-3xl border border-[color:var(--line)] bg-[color:var(--surface)] p-5 shadow-[0_10px_30px_rgba(25,12,52,0.04)] md:p-6"
+                      >
+                        <h3 className="flex items-center gap-3 text-sm font-extrabold uppercase tracking-[0.14em] text-[color:var(--ink)]">
+                          <span
+                            className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-[color:var(--brand-soft)] px-2 text-[11px] tracking-normal text-[color:var(--brand)]"
                           >
-                            <span className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-[color:var(--brand)]" />
-                            <span>{cleanLine(line)}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </section>
-                  ))}
+                            {sectionNumber}
+                          </span>
+                          <span>{section.title}</span>
+                        </h3>
+                        <ul className="mt-4 space-y-3.5 pl-3 text-base leading-7 text-[color:var(--muted)] md:pl-4 md:text-[17px]">
+                          {section.items.map((item, lineIndex) => (
+                            <li
+                              key={`${section.title}-${lineIndex}`}
+                              className="flex gap-3.5"
+                            >
+                              <span className="mt-2.5 h-2 w-2 shrink-0 rounded-full bg-[color:var(--brand)] shadow-[0_0_0_4px_rgba(111,66,201,0.12)]" />
+                              <div className="min-w-0">
+                                <p className="text-[color:var(--ink-2)]">{item.text}</p>
+                                {item.children.length > 0 ? (
+                                  <ul className="mt-2 space-y-1.5 pl-3 text-[15px] leading-6 text-[color:var(--muted)] md:text-base">
+                                    {item.children.map((child, childIndex) => (
+                                      <li key={`${section.title}-${lineIndex}-child-${childIndex}`} className="flex gap-1.5">
+                                        <span className="shrink-0 text-[color:var(--brand)]">-</span>
+                                        <span>{child}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                ) : null}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      </section>
+                    );
+                  })}
                 </div>
-              ) : summaryLines.length > 0 ? (
-                <ul className="mt-6 space-y-2 text-base leading-7 text-[color:var(--muted)] md:text-[17px]">
-                  {summaryLines.map((line, lineIndex) => (
-                    <li key={`summary-${lineIndex}`} className="flex gap-3">
-                      <span className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-[color:var(--brand)]" />
-                      <span>{cleanLine(line)}</span>
+              ) : summaryItems.length > 0 ? (
+                <ul className="mt-8 space-y-3.5 rounded-3xl border border-[color:var(--line)] bg-[color:var(--surface)] p-5 text-base leading-7 text-[color:var(--muted)] shadow-[0_10px_30px_rgba(25,12,52,0.04)] md:p-6 md:text-[17px]">
+                  {summaryItems.map((item, lineIndex) => (
+                    <li key={`summary-${lineIndex}`} className="flex gap-3.5 pl-3 md:pl-4">
+                      <span className="mt-2.5 h-2 w-2 shrink-0 rounded-full bg-[color:var(--brand)] shadow-[0_0_0_4px_rgba(111,66,201,0.12)]" />
+                      <div className="min-w-0">
+                        <p className="text-[color:var(--ink-2)]">{item.text}</p>
+                        {item.children.length > 0 ? (
+                          <ul className="mt-2 space-y-1.5 pl-3 text-[15px] leading-6 text-[color:var(--muted)] md:text-base">
+                            {item.children.map((child, childIndex) => (
+                              <li key={`summary-${lineIndex}-child-${childIndex}`} className="flex gap-1.5">
+                                <span className="shrink-0 text-[color:var(--brand)]">-</span>
+                                <span>{child}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -244,25 +364,44 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
               )}
 
               {(career.location || career.workSchedule) && (
-                <div className="mt-8 space-y-5">
-                  <section>
-                    <h3 className="text-sm font-extrabold uppercase tracking-[0.14em] text-[color:var(--ink)]">
-                      {sections.length + 1}. {text.common.workLocation}
+                <div className="mt-6 space-y-6">
+                  <section className="rounded-3xl border border-[color:var(--line)] bg-[color:var(--surface)] p-5 shadow-[0_10px_30px_rgba(25,12,52,0.04)] md:p-6">
+                    <h3 className="flex items-center gap-3 text-sm font-extrabold uppercase tracking-[0.14em] text-[color:var(--ink)]">
+                      <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-[color:var(--brand-soft)] px-2 text-[11px] tracking-normal text-[color:var(--brand)]">
+                        {sections.length + 1}
+                      </span>
+                      <span>{text.common.workLocation}</span>
                     </h3>
-                    <p className="mt-2 text-base leading-7 text-[color:var(--muted)] md:text-[17px]">
-                      {career.location}
-                    </p>
+                    <div className="mt-4 flex gap-3.5 pl-3 text-base leading-7 text-[color:var(--muted)] md:pl-4 md:text-[17px]">
+                      <span className="mt-2.5 h-2 w-2 shrink-0 rounded-full bg-[color:var(--brand)] shadow-[0_0_0_4px_rgba(111,66,201,0.12)]" />
+                      <p className="text-[color:var(--ink-2)]">{career.location}</p>
+                    </div>
                   </section>
                   {career.workSchedule ? (
-                    <section>
-                      <h3 className="text-sm font-extrabold uppercase tracking-[0.14em] text-[color:var(--ink)]">
-                        {sections.length + 2}. {text.common.workTime}
+                    <section className="rounded-3xl border border-[color:var(--line)] bg-[color:var(--surface)] p-5 shadow-[0_10px_30px_rgba(25,12,52,0.04)] md:p-6">
+                      <h3 className="flex items-center gap-3 text-sm font-extrabold uppercase tracking-[0.14em] text-[color:var(--ink)]">
+                        <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-[color:var(--brand-soft)] px-2 text-[11px] tracking-normal text-[color:var(--brand)]">
+                          {sections.length + 2}
+                        </span>
+                        <span>{text.common.workTime}</span>
                       </h3>
-                      <ul className="mt-2 space-y-2 text-base leading-7 text-[color:var(--muted)] md:text-[17px]">
-                        {splitReadableLines(career.workSchedule).map((line, lineIndex) => (
-                          <li key={`work-${lineIndex}`} className="flex gap-3">
-                            <span className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-[color:var(--brand)]" />
-                            <span>{cleanLine(line)}</span>
+                      <ul className="mt-4 space-y-3.5 pl-3 text-base leading-7 text-[color:var(--muted)] md:pl-4 md:text-[17px]">
+                        {workScheduleItems.map((item, lineIndex) => (
+                          <li key={`work-${lineIndex}`} className="flex gap-3.5">
+                            <span className="mt-2.5 h-2 w-2 shrink-0 rounded-full bg-[color:var(--brand)] shadow-[0_0_0_4px_rgba(111,66,201,0.12)]" />
+                            <div className="min-w-0">
+                              <p className="text-[color:var(--ink-2)]">{item.text}</p>
+                              {item.children.length > 0 ? (
+                                <ul className="mt-2 space-y-1.5 pl-3 text-[15px] leading-6 text-[color:var(--muted)] md:text-base">
+                                  {item.children.map((child, childIndex) => (
+                                    <li key={`work-${lineIndex}-child-${childIndex}`} className="flex gap-1.5">
+                                      <span className="shrink-0 text-[color:var(--brand)]">-</span>
+                                      <span>{child}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : null}
+                            </div>
                           </li>
                         ))}
                       </ul>
@@ -272,9 +411,8 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
               )}
             </Reveal>
 
-            <div className="md:sticky md:top-[50vh] md:z-10 md:-translate-y-1/2 md:self-start">
-              <Reveal delay={0.06}>
-                <aside className="rounded-3xl border border-[color:var(--line)] bg-[color:var(--soft)] p-7 shadow-[0_12px_40px_rgba(25,12,52,0.06)]">
+            <div className="mt-10 w-full md:mt-12 md:ml-auto md:w-1/2">
+              <aside className="rounded-3xl border border-[color:var(--line)] bg-[color:var(--soft)] p-7 shadow-[0_12px_40px_rgba(25,12,52,0.06)]">
                 <h3 className="font-display text-lg font-bold text-[color:var(--ink)]">
                   {text.common.quickFacts}
                 </h3>
@@ -307,10 +445,52 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
                   {text.common.applyRole}
                 </a>
               </aside>
-              </Reveal>
             </div>
           </div>
         </section>
+
+        {relatedCareers.length > 0 ? (
+          <section className="bg-[color:var(--surface)] pb-32 md:pb-40">
+            <div className="mx-auto w-full max-w-7xl px-5 md:px-8">
+              <Reveal>
+                <div className="flex items-end justify-between gap-4">
+                  <div>
+                    <p className="text-[12px] font-bold uppercase tracking-[0.22em] text-[color:var(--brand)]">
+                      {text.common.careersEyebrow}
+                    </p>
+                    <h2 className="mt-2 font-display text-3xl font-extrabold leading-tight text-[color:var(--ink)] md:text-4xl">
+                      {text.common.relatedCareers}
+                    </h2>
+                    <p className="mt-3 max-w-2xl text-base text-[color:var(--muted)] md:text-lg">
+                      {text.common.relatedCareersDesc}
+                    </p>
+                  </div>
+                  <Link
+                    href="/careers"
+                    className="hidden rounded-full border border-[color:var(--line)] px-5 py-2.5 text-sm font-semibold text-[color:var(--ink-2)] transition hover:border-[color:var(--brand-light)] hover:text-[color:var(--brand)] md:inline-flex"
+                  >
+                    {text.common.careersTitle}
+                  </Link>
+                </div>
+
+                <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {relatedCareers.map((relatedCareer) => (
+                    <CareerCard key={relatedCareer.id} item={relatedCareer} locale={locale} />
+                  ))}
+                </div>
+
+                <div className="mt-6 md:hidden">
+                  <Link
+                    href="/careers"
+                    className="inline-flex rounded-full border border-[color:var(--line)] px-5 py-2.5 text-sm font-semibold text-[color:var(--ink-2)] transition hover:border-[color:var(--brand-light)] hover:text-[color:var(--brand)]"
+                  >
+                    {text.common.careersTitle}
+                  </Link>
+                </div>
+              </Reveal>
+            </div>
+          </section>
+        ) : null}
       </main>
       <Footer locale={locale} />
     </div>

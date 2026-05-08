@@ -91,10 +91,10 @@ export const messagesVi = {
     eyebrow: "Thiết kế của chúng tôi",
     title: "Những gì chúng tôi tạo ra cho đối tác",
     description:
-      "Tổng quan nhanh về các sản phẩm sáng tạo và thiết kế đã được đội ngũ GEMS triển khai",
+      "Tổng quan nhanh về các sản phẩm sáng tạo và thiết kế đã được đội ngũ GEMS United triển khai",
     ctaTitle: "Bạn có một dự án trong đầu?",
     ctaDescription:
-      "Cùng GEMS biến concept thành SKU sẵn sàng giao hàng toàn cầu - từ insight đến fulfillment.",
+      "Cùng GEMS United biến concept thành SKU sẵn sàng giao hàng toàn cầu - từ insight đến fulfillment.",
     ctaPrimary: "Bắt đầu dự án",
     ctaSecondary: "Xem thêm thiết kế",
     moreTitle: "Thêm thiết kế nổi bật",
@@ -205,9 +205,9 @@ export const messagesVi = {
     culture: {
       eyebrow: "GEMSTER CULTURE",
       title: "Work hard. Eat hard. Print the Future.",
-      body: "Tại GEMS, mỗi Gemster được trao quyền sở hữu kết quả, ra quyết định theo bối cảnh và tăng trưởng không bị giới hạn bởi thâm niên.",
+      body: "Tại GEMS United, mỗi Gemster được trao quyền sở hữu kết quả, ra quyết định theo bối cảnh và tăng trưởng không bị giới hạn bởi thâm niên.",
       quote: "Mỗi sản phẩm là một lời chúc - chúng tôi in cảm xúc, không chỉ in mực.",
-      quoteAuthor: "Đội ngũ sáng lập GEMS",
+      quoteAuthor: "Đội ngũ sáng lập GEMS United",
       gallery: {
         main: "Sắp cập nhật - khoảnh khắc Gemster",
         yepBadge: "YEP 2025",
@@ -256,9 +256,11 @@ export const messagesVi = {
     careersEyebrow: "Tuyển dụng",
     careersTitle: "Gia nhập GEMS United",
     careersDesc: "Các vị trí đang mở trong vận hành, marketing, thiết kế và tăng trưởng",
+    relatedCareers: "Vị trí liên quan",
+    relatedCareersDesc: "Khám phá thêm các vị trí tương tự để tìm công việc phù hợp nhất với kinh nghiệm của bạn.",
     aboutUs: "Giới thiệu",
-    welcomeGem: "Chào mừng đến với GemS United",
-    connectGem: "Kết nối với GemS United",
+    welcomeGem: "Chào mừng đến với GEMS United",
+    connectGem: "Kết nối với GEMS United",
     readingTime: "Thời gian đọc",
     minRead: "phút đọc",
     share: "Chia sẻ",

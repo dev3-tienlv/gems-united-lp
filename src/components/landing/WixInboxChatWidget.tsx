@@ -47,7 +47,7 @@ export function WixInboxChatWidget() {
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [sendState, setSendState] = useState<SendState>("idle");
-  const [helperText, setHelperText] = useState("Chat with GEMS team.");
+  const [helperText, setHelperText] = useState("Chat with GEMS United team.");
   const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
 
   const canSubmit = useMemo(
@@ -186,7 +186,7 @@ export function WixInboxChatWidget() {
           >
             <Image
               src="/logo-3d.png"
-              alt="GEMS logo"
+              alt="GEMS United logo"
               width={42}
               height={42}
               loading="eager"

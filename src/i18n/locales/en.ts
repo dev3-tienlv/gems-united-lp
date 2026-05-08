@@ -90,10 +90,10 @@ export const messagesEn = {
   designs: {
     eyebrow: "Our designs",
     title: "What we build for partners",
-    description: "A quick look at creative and design outputs delivered by GEMS teams",
+    description: "A quick look at creative and design outputs delivered by GEMS United teams",
     ctaTitle: "Have a project in mind?",
     ctaDescription:
-      "Let GEMS turn your concept into shipping-ready SKUs - from insight to fulfillment.",
+      "Let GEMS United turn your concept into shipping-ready SKUs - from insight to fulfillment.",
     ctaPrimary: "Start a project",
     ctaSecondary: "Browse more designs",
     moreTitle: "More highlights",
@@ -203,9 +203,9 @@ export const messagesEn = {
     culture: {
       eyebrow: "GEMSTER CULTURE",
       title: "Work hard. Eat hard. Print the Future.",
-      body: "At GEMS, every Gemster owns outcomes, makes decisions with context, and grows without waiting for seniority.",
+      body: "At GEMS United, every Gemster owns outcomes, makes decisions with context, and grows without waiting for seniority.",
       quote: "Every product is a wish in physical form. We print emotions, not just ink.",
-      quoteAuthor: "GEMS Founding Team",
+      quoteAuthor: "GEMS United Founding Team",
       gallery: {
         main: "Coming soon - Gemster team moments",
         yepBadge: "YEP 2025",
@@ -254,9 +254,11 @@ export const messagesEn = {
     careersEyebrow: "Careers",
     careersTitle: "Join GEMS United",
     careersDesc: "Open roles across operations, marketing, design, and growth",
+    relatedCareers: "Related jobs",
+    relatedCareersDesc: "Explore similar openings to find the role that best matches your experience.",
     aboutUs: "About us",
-    welcomeGem: "Welcome to GemS United",
-    connectGem: "Connect with GemS United",
+    welcomeGem: "Welcome to GEMS United",
+    connectGem: "Connect with GEMS United",
     readingTime: "Reading time",
     minRead: "min read",
     share: "Share",
