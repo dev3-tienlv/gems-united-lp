@@ -1,8 +1,18 @@
 import { blogItems, careers, designItems } from "@/data/landing";
 import { unstable_cache } from "next/cache";
-import { DEFAULT_WIX_SITE_ID } from "@/lib/constants";
+import { DEFAULT_WIX_SITE_ID, SITE_URL } from "@/lib/constants";
 import type { BlogItem, CareerItem, DesignItem } from "@/types/landing";
 import { logger } from "@/lib/logger";
+import { richContentToHtml } from "@/lib/rich-content";
+import { toWixStaticImageUrl } from "@/lib/wix-media";
+
+function safeDecodeURIComponent(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
 
 interface WixDataQueryResponse<T = Record<string, unknown>> {
   dataItems?: Array<{ data?: T }>;
@@ -20,7 +30,9 @@ function toSafeErrorMessage(error: unknown): string {
 
 const WIX_API_BASE = "https://www.wixapis.com/wix-data/v2/items/query";
 const WIX_COLLECTIONS_API = "https://www.wixapis.com/wix-data/v2/data-collections";
+const WIX_BLOG_API_BASE = "https://www.wixapis.com/blog/v3/posts";
 const REVALIDATE_SECONDS = 300;
+const BLOG_CACHE_KEY = "wix-all-blogs-v2";
 
 export function getWixEnv() {
   return {
@@ -99,18 +111,15 @@ async function queryCollection<T = Record<string, unknown>>(
   return (payload.dataItems || []).map((item) => item.data).filter(Boolean) as T[];
 }
 
-function toWixStaticImageUrl(imageField: unknown): string | undefined {
-  if (typeof imageField !== "string") return undefined;
-  if (imageField.startsWith("wix:image://v1/")) {
-    const rest = imageField.replace("wix:image://v1/", "");
-    const fileId = rest.split("/")[0];
-    return fileId ? `https://static.wixstatic.com/media/${fileId}` : undefined;
-  }
-  if (imageField.startsWith("http")) return imageField;
-  return undefined;
-}
-
 function pickImageFromRaw(raw: Record<string, unknown>): string | undefined {
+  const coverMedia = raw.coverMedia as Record<string, unknown> | undefined;
+  const coverMediaImage = coverMedia?.image as Record<string, unknown> | undefined;
+  const coverMediaUrl = coverMediaImage?.url;
+  if (typeof coverMediaUrl === "string") {
+    const url = toWixStaticImageUrl(coverMediaUrl);
+    if (url) return url;
+  }
+
   const candidates = [
     raw.image_fld,
     raw.coverImage,
@@ -152,6 +161,17 @@ function pickImageFromRaw(raw: Record<string, unknown>): string | undefined {
     }
   }
   return undefined;
+}
+
+function pickExcerptFromRaw(raw: Record<string, unknown>): string {
+  if (typeof raw.excerpt === "string" && raw.excerpt.trim()) return raw.excerpt;
+  if (raw.excerpt && typeof raw.excerpt === "object") {
+    const excerptObj = raw.excerpt as Record<string, unknown>;
+    if (typeof excerptObj.plainText === "string" && excerptObj.plainText.trim()) return excerptObj.plainText;
+    if (typeof excerptObj.html === "string" && excerptObj.html.trim()) return excerptObj.html;
+  }
+  if (typeof raw.summary === "string" && raw.summary.trim()) return raw.summary;
+  return "Read the latest update from GEMS United.";
 }
 
 const COMBINING_DIACRITICS = /[\u0300-\u036f]/g;
@@ -208,29 +228,23 @@ function normalizeCareer(raw: Record<string, unknown>, idx: number): CareerItem 
 }
 
 function normalizeBlog(raw: Record<string, unknown>): BlogItem {
-  const richContent =
-    typeof raw.richContent === "string"
-      ? raw.richContent
-      : raw.richContent
-        ? JSON.stringify(raw.richContent)
-        : undefined;
+  const bodyHtmlCandidate =
+    (typeof raw.bodyHtml === "string" ? raw.bodyHtml : undefined) ||
+    (typeof raw.htmlContent === "string" ? raw.htmlContent : undefined) ||
+    richContentToHtml(raw.richContent);
   const bodyCandidate =
-    raw.content ||
-    raw.bodyHtml ||
-    raw.htmlContent ||
-    raw.body ||
-    richContent ||
-    raw.plainContent;
-  const body = typeof bodyCandidate === "string" ? bodyCandidate : undefined;
+    (typeof raw.content === "string" ? raw.content : undefined) ||
+    (typeof raw.body === "string" ? raw.body : undefined) ||
+    (typeof raw.plainContent === "string" ? raw.plainContent : undefined);
   const publishedAtRaw = raw.firstPublishedDate || raw.publishedAt;
 
   return {
     title: String(raw.title || raw.postTitle || "Blog post"),
-    excerpt: String(raw.excerpt || raw.summary || "Read the latest update from GEMS United."),
+    excerpt: pickExcerptFromRaw(raw),
     slug: raw.slug ? String(raw.slug) : raw.slug_fld ? String(raw.slug_fld) : undefined,
     imageUrl: pickImageFromRaw(raw),
-    body,
-    bodyHtml: typeof raw.bodyHtml === "string" ? raw.bodyHtml : undefined,
+    body: bodyCandidate,
+    bodyHtml: bodyHtmlCandidate,
     publishedAt: typeof publishedAtRaw === "string" ? publishedAtRaw : undefined,
     permalink:
       typeof raw.permalink === "string"
@@ -238,11 +252,62 @@ function normalizeBlog(raw: Record<string, unknown>): BlogItem {
         : typeof raw.url === "string"
           ? raw.url
           : typeof raw.postPageUrl === "string"
-            ? `https://www.gemsunited.com${raw.postPageUrl}`
+            ? `${SITE_URL}${raw.postPageUrl}`
           : undefined,
     postPageUrl: typeof raw.postPageUrl === "string" ? raw.postPageUrl : undefined,
-    richContent: raw.richContent,
   };
+}
+
+interface WixBlogBySlugResponse {
+  post?: Record<string, unknown>;
+}
+
+async function getWixBlogBySlug(slug: string): Promise<BlogItem | null> {
+  const { apiKey, siteId } = getWixEnv();
+  if (!apiKey) return null;
+
+  const endpoint = `${WIX_BLOG_API_BASE}/slugs/${encodeURIComponent(slug)}?fieldsets=BASIC,URL,CONTENT`;
+  try {
+    const response = await fetch(endpoint, {
+      method: "GET",
+      headers: {
+        Authorization: apiKey,
+        "wix-site-id": siteId,
+      },
+      next: { revalidate: REVALIDATE_SECONDS },
+    });
+
+    if (!response.ok) return null;
+
+    const payload = (await response.json()) as WixBlogBySlugResponse;
+    if (!payload.post || typeof payload.post !== "object") return null;
+    return normalizeBlog(payload.post);
+  } catch (error) {
+    logger.warn("[wix-headless] Failed to fetch blog by slug endpoint.", toSafeErrorMessage(error));
+    return null;
+  }
+}
+
+async function getBlogBySlugFromDataCollection(slug: string): Promise<BlogItem | null> {
+  const { blogsCollectionId } = getWixEnv();
+  if (!blogsCollectionId) return null;
+
+  const candidates = Array.from(new Set([slug, safeDecodeURIComponent(slug)]));
+  for (const candidate of candidates) {
+    try {
+      const result = await queryCollection<Record<string, unknown>>(blogsCollectionId, {
+        limit: 1,
+        filter: { slug: candidate },
+      });
+      if (result.length > 0) {
+        return normalizeBlog(result[0]);
+      }
+    } catch (error) {
+      logger.warn("[wix-headless] Failed to query blog by slug from collection.", toSafeErrorMessage(error));
+    }
+  }
+
+  return null;
 }
 
 function normalizeDesign(raw: Record<string, unknown>, idx: number): DesignItem {
@@ -293,14 +358,14 @@ export async function getAllCareers(): Promise<CareerItem[]> {
 }
 
 export async function getBlogBySlug(slug: string): Promise<BlogItem | null> {
-  const normalizedInput = decodeURIComponent(slug).trim();
+  const normalizedInput = safeDecodeURIComponent(slug).trim();
   const normalizedKey = normalizeSlugKey(normalizedInput);
   const matchBlog = (list: BlogItem[]): BlogItem | null => {
     const direct = list.find((blog) => blog.slug === normalizedInput);
     if (direct) return direct;
 
     const byDecoded = list.find((blog) =>
-      blog.slug ? decodeURIComponent(blog.slug) === normalizedInput : false,
+      blog.slug ? safeDecodeURIComponent(blog.slug) === normalizedInput : false,
     );
     if (byDecoded) return byDecoded;
 
@@ -314,7 +379,7 @@ export async function getBlogBySlug(slug: string): Promise<BlogItem | null> {
         if (!blog.permalink) return false;
         const permalinkSlug = blog.permalink.split("/").filter(Boolean).pop();
         if (!permalinkSlug) return false;
-        const decodedPermalinkSlug = decodeURIComponent(permalinkSlug);
+        const decodedPermalinkSlug = safeDecodeURIComponent(permalinkSlug);
         return (
           decodedPermalinkSlug === normalizedInput ||
           normalizeSlugKey(decodedPermalinkSlug) === normalizedKey
@@ -322,6 +387,16 @@ export async function getBlogBySlug(slug: string): Promise<BlogItem | null> {
       }) ?? null
     );
   };
+
+  const directBlog = await getWixBlogBySlug(normalizedInput);
+  if (directBlog) {
+    return directBlog;
+  }
+
+  const dataCollectionBlog = await getBlogBySlugFromDataCollection(normalizedInput);
+  if (dataCollectionBlog) {
+    return dataCollectionBlog;
+  }
 
   const allBlogs = await getAllBlogs();
   const matchedBlog = matchBlog(allBlogs);
@@ -350,12 +425,29 @@ const getAllBlogsCached = unstable_cache(
 
   return blogItems;
   },
-  ["wix-all-blogs"],
+  [BLOG_CACHE_KEY],
   { revalidate: REVALIDATE_SECONDS },
 );
 
 export async function getAllBlogs(): Promise<BlogItem[]> {
   return getAllBlogsCached();
+}
+
+export async function getLatestBlogsExcept(currentSlug: string, limit = 3): Promise<BlogItem[]> {
+  const normalizedCurrent = normalizeSlugKey(safeDecodeURIComponent(currentSlug));
+  const allBlogs = await getAllBlogs();
+
+  return allBlogs
+    .filter((blog) => {
+      if (!blog.slug) return false;
+      return normalizeSlugKey(blog.slug) !== normalizedCurrent;
+    })
+    .sort((a, b) => {
+      const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+      const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+      return dateB - dateA;
+    })
+    .slice(0, limit);
 }
 
 export async function getLandingContent(): Promise<LandingContent> {

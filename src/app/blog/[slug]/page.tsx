@@ -5,6 +5,11 @@ export const revalidate = 900;
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BlogFinalCta } from "@/components/blog/BlogFinalCta";
+import { BlogLightbox } from "@/components/blog/BlogLightbox";
+import { BlogReadingProgress } from "@/components/blog/BlogReadingProgress";
+import { BlogRelated } from "@/components/blog/BlogRelated";
+import { BlogShareStrip } from "@/components/blog/BlogShareStrip";
 import { Footer } from "@/components/landing/Footer";
 import { Header } from "@/components/landing/Header";
 import { Reveal } from "@/components/motion/Reveal";
@@ -12,17 +17,50 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { getLocale } from "@/i18n/locale";
 import { getMessages } from "@/i18n/messages";
 import type { Locale } from "@/i18n/types";
+import { type BlogContactInfo, parseBlogContent } from "@/lib/blog-content-parser";
+import { SITE_URL } from "@/lib/constants";
 import { blogPostingJsonLd } from "@/lib/seo";
 import { looksLikeHtml, sanitizeBlogHtml } from "@/lib/sanitize";
-import { getBlogBySlug } from "@/lib/wix-headless";
+import { getBlogBySlug, getLatestBlogsExcept } from "@/lib/wix-headless";
 
 interface BlogDetailPageProps {
   params: Promise<{ slug: string }>;
 }
 
-interface BlogMediaItem {
-  type: "image" | "video";
-  url: string;
+function safeDecodeURIComponent(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
+function injectImageStyle(attrs: string): string {
+  const cleanedAttrs = attrs.replace(/\sstyle\s*=\s*["'][^"']*["']/i, "");
+  return `${cleanedAttrs} style="display:block;width:100%;height:100%;min-height:280px;max-height:none;margin:0;object-fit:cover;object-position:top;border-radius:16px;grid-column:span 1;grid-row:span 1;"`;
+}
+
+function injectVideoStyle(attrs: string): string {
+  const cleanedAttrs = attrs.replace(/\sstyle\s*=\s*["'][^"']*["']/i, "");
+  return `${cleanedAttrs} style="display:block;width:100%;height:auto;max-height:min(72vh,760px);min-height:0;margin:0 auto;border-radius:16px;background:#000;object-fit:contain;"`;
+}
+
+function normalizeArticleMedia(html: string): string {
+  let output = html;
+
+  output = output.replace(/<div\s+class=["']gallery["']>/gi, () => {
+    return '<div class="gallery" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:350px;gap:6px;">';
+  });
+
+  output = output.replace(/<img([^>]*)>/gi, (_full, attrs: string) => {
+    return `<img${injectImageStyle(attrs)}>`;
+  });
+
+  output = output.replace(/<video([^>]*)(\/?)>/gi, (_full, attrs: string, selfClose: string) => {
+    return `<video${injectVideoStyle(attrs)}${selfClose}>`;
+  });
+
+  return output;
 }
 
 function formatPublishedAt(value?: string, locale: Locale = "vi"): string | null {
@@ -36,81 +74,18 @@ function formatPublishedAt(value?: string, locale: Locale = "vi"): string | null
   }).format(date);
 }
 
-function toWixMediaUrl(rawUrl: string): string {
-  if (!rawUrl) return rawUrl;
-  if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) return rawUrl;
-  if (rawUrl.startsWith("wix:image://v1/")) {
-    const rest = rawUrl.replace("wix:image://v1/", "");
-    const fileId = rest.split("/")[0];
-    return fileId ? `https://static.wixstatic.com/media/${fileId}` : rawUrl;
-  }
-  if (rawUrl.startsWith("wix:video://v1/")) {
-    const rest = rawUrl.replace("wix:video://v1/", "");
-    const fileId = rest.split("/")[0];
-    return fileId ? `https://video.wixstatic.com/video/${fileId}` : rawUrl;
-  }
-  if (/^[a-z0-9]+_.+\.(jpg|jpeg|png|webp|gif|avif)$/i.test(rawUrl)) {
-    return `https://static.wixstatic.com/media/${rawUrl}`;
-  }
-  if (/^[a-z0-9]+_.+\.(mp4|webm|mov)$/i.test(rawUrl)) {
-    return `https://video.wixstatic.com/video/${rawUrl}`;
-  }
-  return rawUrl;
+function countWords(text: string): number {
+  if (!text) return 0;
+  return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
-function collectMediaFromNode(node: Record<string, unknown>, result: BlogMediaItem[]) {
-  if (node.type === "GALLERY") {
-    const items = (node.galleryData as { items?: unknown[] } | undefined)?.items || [];
-    for (const item of items) {
-      const mediaUrl = ((item as { image?: { media?: { src?: { url?: string } } } })?.image?.media?.src?.url ||
-        (item as { video?: { media?: { src?: { url?: string } } } })?.video?.media?.src?.url) as
-        | string
-        | undefined;
-      if (!mediaUrl) continue;
-      const normalized = toWixMediaUrl(mediaUrl);
-      const isVideo = /\.(mp4|webm|mov)(\?|$)/i.test(normalized);
-      result.push({ type: isVideo ? "video" : "image", url: normalized });
-    }
-  }
-
-  if (node.type === "IMAGE") {
-    const mediaUrl = (node.imageData as { image?: { src?: { id?: string; url?: string } } } | undefined)
-      ?.image?.src;
-    const rawUrl = (mediaUrl?.url || mediaUrl?.id) as string | undefined;
-    if (rawUrl) result.push({ type: "image", url: toWixMediaUrl(rawUrl) });
-  }
-
-  if (node.type === "VIDEO") {
-    const mediaUrl = (node.videoData as { video?: { src?: { id?: string; url?: string } } } | undefined)
-      ?.video?.src;
-    const rawUrl = (mediaUrl?.url || mediaUrl?.id) as string | undefined;
-    if (rawUrl) result.push({ type: "video", url: toWixMediaUrl(rawUrl) });
-  }
-}
-
-function extractMediaItems(rawRichContent: unknown): BlogMediaItem[] {
-  let richContent: Record<string, unknown> | null = null;
-  if (typeof rawRichContent === "string") {
-    try {
-      richContent = JSON.parse(rawRichContent) as Record<string, unknown>;
-    } catch {
-      richContent = null;
-    }
-  } else {
-    richContent = rawRichContent as Record<string, unknown> | null;
-  }
-  if (!richContent || typeof richContent !== "object") return [];
-  const nodes = (richContent.nodes as unknown[]) || [];
-  const result: BlogMediaItem[] = [];
-
-  for (const node of nodes) {
-    if (!node || typeof node !== "object") continue;
-    collectMediaFromNode(node as Record<string, unknown>, result);
-  }
-
-  const unique = new Map<string, BlogMediaItem>();
-  result.forEach((item) => unique.set(`${item.type}:${item.url}`, item));
-  return Array.from(unique.values());
+function buildBlogPageUrl(blog: {
+  permalink?: string;
+  postPageUrl?: string;
+}, slug: string): string {
+  if (blog.permalink) return blog.permalink;
+  if (blog.postPageUrl) return `${SITE_URL}${blog.postPageUrl}`;
+  return `${SITE_URL}/blog/${encodeURIComponent(slug)}`;
 }
 
 export async function generateMetadata({ params }: BlogDetailPageProps): Promise<Metadata> {
@@ -144,13 +119,20 @@ export async function generateMetadata({ params }: BlogDetailPageProps): Promise
 
 export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
   const [{ slug }, locale] = await Promise.all([params, getLocale()]);
-  const blog = await getBlogBySlug(slug);
+  const [blog, relatedBlogs] = await Promise.all([
+    getBlogBySlug(slug),
+    getLatestBlogsExcept(slug, 3),
+  ]);
   if (!blog) notFound();
   const text = getMessages(locale);
 
   const bodyText = blog.bodyHtml || blog.body;
   const isHtml = typeof bodyText === "string" && looksLikeHtml(bodyText);
   const safeHtml = isHtml ? sanitizeBlogHtml(bodyText) : "";
+  const parsedHtmlContent = isHtml ? parseBlogContent(safeHtml) : null;
+  const articleHtml = normalizeArticleMedia(parsedHtmlContent?.html ?? safeHtml);
+  const tags = parsedHtmlContent?.tags ?? [];
+  const contact: BlogContactInfo = parsedHtmlContent?.contact ?? {};
   const plainParagraphs =
     typeof bodyText === "string" && !isHtml
       ? bodyText.split(/\n+/).map((line) => line.trim()).filter(Boolean)
@@ -158,12 +140,18 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
   const publishedAt = formatPublishedAt(blog.publishedAt, locale);
   const leadParagraph = plainParagraphs[0];
   const otherParagraphs = plainParagraphs.slice(1);
-  const mediaItems = extractMediaItems(blog.richContent);
+  const wordsPerMin = locale === "vi" ? 230 : 200;
+  const plainText = (bodyText ?? "").replace(/<[^>]+>/g, " ");
+  const wordCount = countWords(plainText);
+  const readingMinutes = Math.max(1, Math.round(wordCount / wordsPerMin) || 1);
+  const pageUrl = buildBlogPageUrl(blog, safeDecodeURIComponent(slug));
+  const showContactSection = Boolean(contact.website || contact.fanpage || contact.email || contact.address);
 
   return (
     <div className="bg-[color:var(--bg)]">
       <Header locale={locale} />
-      <main id="main-content">
+      <BlogReadingProgress />
+      <main id="main-content" className="pb-[calc(var(--spacing)*12)]">
         <JsonLd data={blogPostingJsonLd(blog, locale)} />
         <section className="relative overflow-hidden bg-gradient-to-br from-[color:var(--hero-from)] via-[color:var(--hero-via)] to-[color:var(--hero-to)]">
           <div className="pointer-events-none absolute -right-32 -top-32 h-[520px] w-[520px] rounded-full bg-[color:var(--brand)]/15 blur-3xl" />
@@ -190,7 +178,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
               </h1>
               {(publishedAt || blog.author) && (
                 <p className="mt-4 text-sm font-medium text-[color:var(--muted)]">
-                  {[publishedAt, blog.author].filter(Boolean).join(" · ")}
+                  {[publishedAt, blog.author, `⏱ ${readingMinutes} ${text.common.minRead}`].filter(Boolean).join(" · ")}
                 </p>
               )}
             </Reveal>
@@ -219,45 +207,27 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
                 )}
               </div>
             </Reveal>
+            <Reveal delay={0.02}>
+              <div className="mt-5 flex justify-center md:sticky md:top-24 md:z-20 md:justify-start">
+                <BlogShareStrip
+                  url={pageUrl}
+                  title={blog.title}
+                  shareLabel={text.common.share}
+                  copyLabel={text.common.copyLink}
+                  copiedLabel={text.common.linkCopied}
+                />
+              </div>
+            </Reveal>
           </div>
         </section>
 
-        <section className="bg-[color:var(--surface)] pb-40 md:pb-40">
-          <div className="mx-auto w-full max-w-3xl px-5 md:px-8">
+        <section className="bg-[color:var(--surface)] pb-28 md:pb-32">
+          <div className="mx-auto w-full max-w-7xl px-5 md:px-8">
             <Reveal delay={0.04}>
-              {mediaItems.length > 0 ? (
-                <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
-                  {mediaItems.map((item, index) => (
-                    <div
-                      key={`${item.type}-${item.url}-${index}`}
-                      className="relative aspect-square overflow-hidden rounded-2xl border border-[color:var(--line)] bg-[color:var(--soft)]"
-                    >
-                      {item.type === "video" ? (
-                        <video
-                          src={item.url}
-                          controls
-                          playsInline
-                          className="h-full w-full object-cover"
-                          preload="metadata"
-                        />
-                      ) : (
-                        <Image
-                          src={item.url}
-                          alt={`${blog.title} media ${index + 1}`}
-                          fill
-                          sizes="(max-width: 768px) 50vw, 33vw"
-                          className="object-cover"
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-
               {isHtml ? (
                 <article
-                  className="prose prose-slate dark:prose-invert max-w-none rounded-3xl border border-[color:var(--line)] bg-[color:var(--surface)] p-6 prose-headings:font-display prose-headings:text-[color:var(--ink)] prose-p:text-[color:var(--ink-2)] prose-a:text-[color:var(--brand)] md:p-9"
-                  dangerouslySetInnerHTML={{ __html: safeHtml }}
+                  className="blog-article max-w-none"
+                  dangerouslySetInnerHTML={{ __html: articleHtml }}
                 />
               ) : plainParagraphs.length > 0 ? (
                 <article className="space-y-7 rounded-3xl border border-[color:var(--line)] bg-[color:var(--surface)] p-6 md:p-9">
@@ -281,10 +251,73 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
                   </p>
                 </article>
               )}
+
+              {tags.length > 0 ? (
+                <div className="mt-8 flex flex-wrap gap-2">
+                  {tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center rounded-full bg-[color:var(--brand-soft)] px-3 py-1.5 text-xs font-semibold text-[color:var(--brand)]"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </Reveal>
+
+            {showContactSection ? (
+              <Reveal delay={0.06}>
+                <section className="mt-10 rounded-3xl border border-[color:var(--line)] bg-[color:var(--soft)] p-6 md:p-7">
+                  <h3 className="font-display text-lg font-bold text-[color:var(--ink)]">{text.common.connectWithUs}</h3>
+                  <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+                    {contact.website ? (
+                      <div className="rounded-2xl bg-[color:var(--surface)] p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[color:var(--muted)]">{text.common.website}</p>
+                        <a className="mt-1 block break-words text-sm font-medium text-[color:var(--brand)]" href={contact.website.startsWith("http") ? contact.website : `https://${contact.website}`} target="_blank" rel="noopener noreferrer">
+                          {contact.website}
+                        </a>
+                      </div>
+                    ) : null}
+                    {contact.fanpage ? (
+                      <div className="rounded-2xl bg-[color:var(--surface)] p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[color:var(--muted)]">{text.common.fanpage}</p>
+                        <a className="mt-1 block break-words text-sm font-medium text-[color:var(--brand)]" href={contact.fanpage.startsWith("http") ? contact.fanpage : `https://${contact.fanpage}`} target="_blank" rel="noopener noreferrer">
+                          {contact.fanpage}
+                        </a>
+                      </div>
+                    ) : null}
+                    {contact.email ? (
+                      <div className="rounded-2xl bg-[color:var(--surface)] p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[color:var(--muted)]">{text.common.email}</p>
+                        <a className="mt-1 block break-words text-sm font-medium text-[color:var(--brand)]" href={`mailto:${contact.email}`}>
+                          {contact.email}
+                        </a>
+                      </div>
+                    ) : null}
+                    {contact.address ? (
+                      <div className="rounded-2xl bg-[color:var(--surface)] p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[color:var(--muted)]">{text.common.address}</p>
+                        <p className="mt-1 break-words text-sm font-medium text-[color:var(--ink)]">{contact.address}</p>
+                      </div>
+                    ) : null}
+                  </div>
+                </section>
+              </Reveal>
+            ) : null}
+
+            <Reveal delay={0.08}>
+              <BlogRelated blogs={relatedBlogs} locale={locale} title={text.common.relatedPosts} />
+            </Reveal>
+            <Reveal delay={0.1}>
+              <div className="pb-20 md:pb-24">
+                <BlogFinalCta title={text.common.finalCtaTitle} buttonLabel={text.common.finalCtaButton} />
+              </div>
             </Reveal>
           </div>
         </section>
       </main>
+      <BlogLightbox />
       <Footer locale={locale} />
     </div>
   );

@@ -189,6 +189,7 @@ export function WixInboxChatWidget() {
               alt="GEMS logo"
               width={42}
               height={42}
+              loading="eager"
               className="h-10 w-10 object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.25)]"
             />
           </button>

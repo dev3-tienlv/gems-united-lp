@@ -31,7 +31,6 @@ export interface BlogItem {
   publishedAt?: string;
   permalink?: string;
   postPageUrl?: string;
-  richContent?: unknown;
 }
 
 export interface DesignItem {

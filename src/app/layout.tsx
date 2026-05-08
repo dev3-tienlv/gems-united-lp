@@ -63,6 +63,7 @@ export default async function RootLayout({
     <html
       lang={locale}
       suppressHydrationWarning
+      data-scroll-behavior="smooth"
       className={`${sans.variable} ${display.variable} h-full antialiased`}
     >
       <head>
