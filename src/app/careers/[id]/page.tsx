@@ -167,14 +167,21 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
             </Reveal>
 
             <Reveal delay={0.08} className="relative">
-              <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[32px] bg-[color:var(--soft)] shadow-[0_30px_80px_rgba(10,8,24,0.18)]">
+              <div
+                className={
+                  career.imageUrl
+                    ? "relative w-full overflow-hidden rounded-[32px] shadow-[0_30px_80px_rgba(10,8,24,0.18)]"
+                    : "relative aspect-[4/5] w-full overflow-hidden rounded-[32px] bg-[color:var(--soft)] shadow-[0_30px_80px_rgba(10,8,24,0.18)]"
+                }
+              >
                 {career.imageUrl ? (
                   <Image
                     src={career.imageUrl}
                     alt={career.title}
-                    fill
+                    width={1026}
+                    height={1026}
                     sizes="(max-width: 768px) 100vw, 600px"
-                    className="object-cover"
+                    className="h-auto w-full"
                     priority
                   />
                 ) : (
