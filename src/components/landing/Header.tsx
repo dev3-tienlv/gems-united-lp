@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { LOGO_URL } from "@/data/landing";
 import { getChromeMessages } from "@/i18n/chrome";
 import type { Locale } from "@/i18n/types";
@@ -199,46 +200,49 @@ export function Header({ locale, initialSolid = false }: HeaderProps) {
         </div>
       </div>
 
-      {isOpen ? (
-        <div className="md:hidden">
-          <button
-            type="button"
-            aria-label={text.closeMenu}
-            className="fixed inset-0 z-40 bg-black/30"
-            onClick={close}
-          />
-          <div
-            ref={drawerRef}
-            id={dialogTitleId}
-            role="dialog"
-            aria-modal="true"
-            aria-label={text.navAriaLabel}
-            className="fixed left-0 right-0 top-24 z-50 mx-auto w-full max-w-7xl px-5"
-          >
-            <div className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface)] p-4 shadow-[0_18px_60px_rgba(10,8,24,0.25)]">
-              <div className="mb-3">
-                <LanguageSwitcher locale={locale} />
+      {isOpen && typeof document !== "undefined"
+        ? createPortal(
+            <div className="md:hidden">
+              <button
+                type="button"
+                aria-label={text.closeMenu}
+                className="fixed inset-0 z-[45] bg-black/30"
+                onClick={close}
+              />
+              <div
+                ref={drawerRef}
+                id={dialogTitleId}
+                role="dialog"
+                aria-modal="true"
+                aria-label={text.navAriaLabel}
+                className="fixed left-0 right-0 top-[calc(6rem+env(safe-area-inset-top,0px))] z-[55] mx-auto w-full max-w-7xl px-5"
+              >
+                <div className="max-h-[min(70dvh,calc(100dvh-6rem-1.5rem))] overflow-y-auto overscroll-contain rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface)] p-4 shadow-[0_18px_60px_rgba(10,8,24,0.25)]">
+                  <div className="mb-3">
+                    <LanguageSwitcher locale={locale} />
+                  </div>
+                  <nav className="flex flex-col gap-1" aria-label={text.navAriaLabel}>
+                    {navItems.map((item) => {
+                      const active = isNavActive(pathname, item.href);
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={close}
+                          className={navLinkClasses({ pathname, href: item.href, variant: "mobile" })}
+                          aria-current={active ? "page" : undefined}
+                        >
+                          {item.label}
+                        </Link>
+                      );
+                    })}
+                  </nav>
+                </div>
               </div>
-              <nav className="flex flex-col gap-1" aria-label={text.navAriaLabel}>
-                {navItems.map((item) => {
-                  const active = isNavActive(pathname, item.href);
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={close}
-                      className={navLinkClasses({ pathname, href: item.href, variant: "mobile" })}
-                      aria-current={active ? "page" : undefined}
-                    >
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              </nav>
-            </div>
-          </div>
-        </div>
-      ) : null}
+            </div>,
+            document.body,
+          )
+        : null}
     </header>
   );
 }
