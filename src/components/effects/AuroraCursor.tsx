@@ -1,21 +1,37 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const SMOOTHING = 0.12;
+/** Tailwind `md` width + real hover (mouse): hides on phones and coarse pointer layouts. */
+const DESKTOP_CURSOR_MEDIA = "(min-width: 768px) and (hover: hover)";
 
 export function AuroraCursor() {
   const frameRef = useRef<number | null>(null);
+  const [showOverlay, setShowOverlay] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const noHover = window.matchMedia("(hover: none)");
+    const desktopMq = window.matchMedia(DESKTOP_CURSOR_MEDIA);
+    const reduceMotionMq = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-    if (reduceMotion.matches || noHover.matches) {
-      return;
-    }
+    const sync = () => {
+      setShowOverlay(desktopMq.matches && !reduceMotionMq.matches);
+    };
+
+    sync();
+    desktopMq.addEventListener("change", sync);
+    reduceMotionMq.addEventListener("change", sync);
+
+    return () => {
+      desktopMq.removeEventListener("change", sync);
+      reduceMotionMq.removeEventListener("change", sync);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!showOverlay || typeof window === "undefined") return;
 
     let mouseX = window.innerWidth * 0.5;
     let mouseY = window.innerHeight * 0.35;
@@ -51,7 +67,9 @@ export function AuroraCursor() {
       root.style.removeProperty("--mx");
       root.style.removeProperty("--my");
     };
-  }, []);
+  }, [showOverlay]);
+
+  if (!showOverlay) return null;
 
   return (
     <div
