@@ -6,6 +6,7 @@ export interface ValueItem {
 
 export interface CareerItem {
   id: string;
+  slug: string;
   title: string;
   location: string;
   type: string;

@@ -198,6 +198,24 @@ function normalizeSlugKey(input: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+/**
+ * Ensure all slugs in the list are unique by appending a numeric suffix
+ * when duplicates are detected (e.g. "designer-pod" → "designer-pod-1").
+ */
+function ensureUniqueSlugs(careers: CareerItem[]): CareerItem[] {
+  const seen = new Set<string>();
+  return careers.map((career) => {
+    let slug = career.slug;
+    if (seen.has(slug)) {
+      let counter = 1;
+      while (seen.has(`${slug}-${counter}`)) counter++;
+      slug = `${slug}-${counter}`;
+    }
+    seen.add(slug);
+    return slug === career.slug ? career : { ...career, slug };
+  });
+}
+
 function normalizeCareer(raw: Record<string, unknown>, idx: number): CareerItem {
   const title = String(raw.title || raw.title_fld || raw.position || "Open Position");
   const rawId = raw._id ?? raw.id ?? raw.slug;
@@ -211,8 +229,17 @@ function normalizeCareer(raw: Record<string, unknown>, idx: number): CareerItem 
   const growth = toText(raw.title_fld_11 || raw.notes);
   const summary = [responsibilities, requirements, benefits, growth].filter(Boolean).join("\n\n");
 
+  // Generate a URL-friendly slug from the job title.
+  // Prefer the Wix-stored slug field if available, otherwise derive from title.
+  const rawSlug = raw.slug ?? raw.urlSlug ?? raw.pageUrl;
+  const slug =
+    typeof rawSlug === "string" && rawSlug.trim().length > 0
+      ? slugify(rawSlug.trim())
+      : slugify(title);
+
   return {
     id,
+    slug,
     title,
     location: String(raw.location || raw.locationAImLmVic || "Da Nang"),
     type: String(raw.type || raw.employmentType || raw.jobType || "Full-time"),
@@ -324,9 +351,28 @@ function normalizeDesign(raw: Record<string, unknown>, idx: number): DesignItem 
   };
 }
 
+/**
+ * Find a career by its slug (preferred) or fall back to id for backward
+ * compatibility with any existing bookmarked UUID-based URLs.
+ *
+ * Accepts an optional pre-fetched list to avoid redundant API calls when
+ * the caller already has the full list (e.g. CareerDetailPage).
+ */
+export async function getCareerBySlug(
+  slug: string,
+  prefetchedCareers?: CareerItem[],
+): Promise<CareerItem | null> {
+  const allCareers = prefetchedCareers ?? (await getAllCareers());
+  // Primary: match by slug
+  const bySlug = allCareers.find((c) => c.slug === slug);
+  if (bySlug) return bySlug;
+  // Fallback: match by id (supports old UUID-based links)
+  return allCareers.find((c) => c.id === slug) ?? null;
+}
+
+/** @deprecated Use getCareerBySlug instead */
 export async function getCareerById(id: string): Promise<CareerItem | null> {
-  const allCareers = await getAllCareers();
-  return allCareers.find((career) => career.id === id) ?? null;
+  return getCareerBySlug(id);
 }
 
 const getAllCareersCached = unstable_cache(
@@ -339,9 +385,10 @@ const getAllCareersCached = unstable_cache(
       limit: 12,
     });
     if (careersRaw.length > 0) {
-      return careersRaw
+      const normalized = careersRaw
         .filter((item) => item.hidden !== true)
         .map((raw, idx) => normalizeCareer(raw, idx));
+      return ensureUniqueSlugs(normalized);
     }
   } catch (error) {
     logger.warn("[wix-headless] Falling back to local careers.", toSafeErrorMessage(error));
@@ -471,15 +518,17 @@ export async function getLandingContent(): Promise<LandingContent> {
       : Promise.resolve([]),
     designsCollectionId
       ? queryCollection<Record<string, unknown>>(designsCollectionId, {
-          limit: 12,
+          limit: 100,
         })
       : Promise.resolve([]),
   ]);
 
   if (careersQuery.status === "fulfilled" && careersQuery.value.length > 0) {
-    result.careers = careersQuery.value
-      .filter((item) => item.hidden !== true)
-      .map((raw, idx) => normalizeCareer(raw, idx));
+    result.careers = ensureUniqueSlugs(
+      careersQuery.value
+        .filter((item) => item.hidden !== true)
+        .map((raw, idx) => normalizeCareer(raw, idx)),
+    );
   } else if (careersQuery.status === "rejected") {
     logger.warn("[wix-headless] Falling back to local careers.", toSafeErrorMessage(careersQuery.reason));
   }

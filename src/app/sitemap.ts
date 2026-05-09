@@ -26,7 +26,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
 
   const careerEntries = careers.map((career) => ({
-    url: `${SITE_URL}/careers/${career.id}`,
+    url: `${SITE_URL}/careers/${career.slug || career.id}`,
     lastModified: now,
     changeFrequency: "weekly" as const,
     priority: 0.7,

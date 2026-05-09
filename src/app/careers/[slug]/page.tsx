@@ -15,11 +15,11 @@ import { jobPostingJsonLd } from "@/lib/seo";
 import { getLocale } from "@/i18n/locale";
 import { getMessages } from "@/i18n/messages";
 import type { Locale } from "@/i18n/types";
-import { getAllCareers, getCareerById } from "@/lib/wix-headless";
+import { getAllCareers, getCareerBySlug } from "@/lib/wix-headless";
 import type { CareerItem } from "@/types/landing";
 
 interface CareerDetailPageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 // Wix may return a sentence in `type` field; treat anything longer than this as
@@ -124,11 +124,12 @@ function pickRelatedCareers(careers: CareerItem[], currentCareer: CareerItem, li
 }
 
 export async function generateMetadata({ params }: CareerDetailPageProps): Promise<Metadata> {
-  const { id } = await params;
-  const career = await getCareerById(id);
+  const { slug } = await params;
+  const allCareers = await getAllCareers();
+  const career = await getCareerBySlug(slug, allCareers);
   if (!career) return { title: "Not found" };
 
-  const path = `/careers/${career.id}`;
+  const path = `/careers/${career.slug}`;
   const description =
     career.summary?.slice(0, 200) ||
     career.responsibilities?.slice(0, 200) ||
@@ -156,8 +157,9 @@ export async function generateMetadata({ params }: CareerDetailPageProps): Promi
 }
 
 export default async function CareerDetailPage({ params }: CareerDetailPageProps) {
-  const [{ id }, locale] = await Promise.all([params, getLocale()]);
-  const [career, allCareers] = await Promise.all([getCareerById(id), getAllCareers()]);
+  const [{ slug }, locale] = await Promise.all([params, getLocale()]);
+  const allCareers = await getAllCareers();
+  const career = await getCareerBySlug(slug, allCareers);
   if (!career) notFound();
   const text = getMessages(locale);
   const relatedCareers = pickRelatedCareers(allCareers, career);

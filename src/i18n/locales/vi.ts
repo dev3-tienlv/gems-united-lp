@@ -98,6 +98,7 @@ export const messagesVi = {
     ctaPrimary: "Bắt đầu dự án",
     ctaSecondary: "Xem thêm thiết kế",
     moreTitle: "Thêm thiết kế nổi bật",
+    showMore: "Xem thêm thiết kế",
     emptyState:
       "Bộ sưu tập thiết kế đang được cập nhật. Liên hệ với chúng tôi để xem portfolio đầy đủ.",
     viewProject: "Xem dự án",

@@ -97,6 +97,7 @@ export const messagesEn = {
     ctaPrimary: "Start a project",
     ctaSecondary: "Browse more designs",
     moreTitle: "More highlights",
+    showMore: "Show more designs",
     emptyState: "Our design collection is being updated. Reach out to see the full portfolio.",
     viewProject: "View project",
   },

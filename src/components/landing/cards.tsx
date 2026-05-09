@@ -59,7 +59,7 @@ export function CareerCard({ item, locale }: { item: CareerItem; locale: Locale 
   const text = getMessages(locale);
   return (
     <Link
-      href={`/careers/${item.id}`}
+      href={`/careers/${item.slug || item.id}`}
       prefetch={false}
       className="group relative block aspect-square overflow-hidden rounded-3xl border-2 border-[color:var(--brand)] bg-[color:var(--soft)] focus-visible:ring-2 focus-visible:ring-[color:var(--brand-light)]"
       aria-label={`${text.cards.hiring} ${item.title}`}

@@ -1,12 +1,12 @@
 import type { BlogItem, CareerItem, DesignItem } from "@/types/landing";
 
 export const careers: CareerItem[] = [
-  { id: "digital-marketing-executive", title: "Digital Marketing Executive", location: "Da Nang", type: "Full-time" },
-  { id: "designer-pod", title: "Designer POD", location: "Da Nang", type: "Full-time" },
-  { id: "customer-service", title: "Customer Service", location: "Da Nang", type: "Full-time" },
-  { id: "data-analyst", title: "Data Analyst", location: "Da Nang", type: "Full-time" },
-  { id: "idea-executive", title: "Idea Executive", location: "Da Nang", type: "Full-time" },
-  { id: "designer-support", title: "Designer Support", location: "Da Nang", type: "Full-time" },
+  { id: "digital-marketing-executive", slug: "digital-marketing-executive", title: "Digital Marketing Executive", location: "Da Nang", type: "Full-time" },
+  { id: "designer-pod", slug: "designer-pod", title: "Designer POD", location: "Da Nang", type: "Full-time" },
+  { id: "customer-service", slug: "customer-service", title: "Customer Service", location: "Da Nang", type: "Full-time" },
+  { id: "data-analyst", slug: "data-analyst", title: "Data Analyst", location: "Da Nang", type: "Full-time" },
+  { id: "idea-executive", slug: "idea-executive", title: "Idea Executive", location: "Da Nang", type: "Full-time" },
+  { id: "designer-support", slug: "designer-support", title: "Designer Support", location: "Da Nang", type: "Full-time" },
 ];
 
 export const blogItems: BlogItem[] = [
