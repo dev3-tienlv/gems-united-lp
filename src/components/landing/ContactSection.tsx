@@ -10,8 +10,13 @@ interface ContactSectionProps {
   locale: Locale;
 }
 
+/** Same place as Google Maps: camera @16.0406515,108.2171682; marker @16.0405426,108.2173066. */
+const OPEN_IN_MAPS_URL =
+  "https://www.google.com/maps/@16.0406515,108.2171682,18z/data=!4m6!3m5!1s0x31421924f8ccca8d:0xf95f058f7ebf9e24!8m2!3d16.0405426!4d108.2173066!16s%2Fg%2F11wnzpk9y9?entry=ttu&g_ep=EgoyMDI2MDUwNi4wIKXMDSoASAFQAw%3D%3D";
+
+/** `q=` makes embed show the red pin; `ll=` alone often centers without a marker. */
 const MAP_SRC =
-  "https://maps.google.com/maps?hl=en&q=16.0417152,108.2224353&z=18&ie=UTF8&t=m&output=embed";
+  "https://www.google.com/maps?q=16.0405426,108.2173066&z=18&t=m&output=embed";
 
 export function ContactSection({
   id = "contact",
@@ -40,6 +45,8 @@ export function ContactSection({
               src={MAP_SRC}
               title={text.contact.mapTitle}
               className="h-[280px] w-full border-0"
+              openInMapsUrl={OPEN_IN_MAPS_URL}
+              openInMapsLabel="Open in Maps"
             />
             <div className="space-y-3 p-6 md:p-7">
               <h3 className="font-display text-3xl font-extrabold text-[color:var(--brand)]">
