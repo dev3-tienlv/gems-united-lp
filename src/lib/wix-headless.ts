@@ -382,7 +382,7 @@ const getAllCareersCached = unstable_cache(
 
   try {
     const careersRaw = await queryCollection<Record<string, unknown>>(careersCollectionId, {
-      limit: 12,
+      limit: 100,
     });
     if (careersRaw.length > 0) {
       const normalized = careersRaw
@@ -508,7 +508,7 @@ export async function getLandingContent(): Promise<LandingContent> {
   const [careersQuery, blogsQuery, designsQuery] = await Promise.allSettled([
     careersCollectionId
       ? queryCollection<Record<string, unknown>>(careersCollectionId, {
-          limit: 12,
+          limit: 100,
         })
       : Promise.resolve([]),
     blogsCollectionId
