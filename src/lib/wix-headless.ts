@@ -76,7 +76,6 @@ export async function listCollections(): Promise<Array<{ id: string; displayName
 interface QueryOptions {
   limit?: number;
   filter?: Record<string, unknown>;
-  tags?: string[];
 }
 
 async function queryCollection<T = Record<string, unknown>>(
@@ -86,7 +85,7 @@ async function queryCollection<T = Record<string, unknown>>(
   const { apiKey, siteId } = getWixEnv();
   if (!apiKey) return [];
 
-  const { limit = 6, filter, tags = [] } = options;
+  const { limit = 6, filter } = options;
   const response = await fetch(WIX_API_BASE, {
     method: "POST",
     headers: {
@@ -101,7 +100,7 @@ async function queryCollection<T = Record<string, unknown>>(
         paging: { limit },
       },
     }),
-    next: { revalidate: REVALIDATE_SECONDS, ...(tags.length > 0 ? { tags } : {}) },
+    next: { revalidate: REVALIDATE_SECONDS },
   });
 
   if (!response.ok) {
@@ -384,7 +383,6 @@ const getAllCareersCached = unstable_cache(
   try {
     const careersRaw = await queryCollection<Record<string, unknown>>(careersCollectionId, {
       limit: 100,
-      tags: ["wix-careers"],
     });
     if (careersRaw.length > 0) {
       const normalized = careersRaw
@@ -399,7 +397,7 @@ const getAllCareersCached = unstable_cache(
   return careers;
   },
   ["wix-all-careers"],
-  { revalidate: REVALIDATE_SECONDS, tags: ["wix-careers"] },
+  { revalidate: REVALIDATE_SECONDS },
 );
 
 export async function getAllCareers(): Promise<CareerItem[]> {
@@ -464,7 +462,6 @@ const getAllBlogsCached = unstable_cache(
   try {
     const blogsRaw = await queryCollection<Record<string, unknown>>(blogsCollectionId, {
       limit: 100,
-      tags: ["wix-blogs"],
     });
     if (blogsRaw.length > 0) {
       return blogsRaw.map(normalizeBlog);
@@ -476,7 +473,7 @@ const getAllBlogsCached = unstable_cache(
   return blogItems;
   },
   [BLOG_CACHE_KEY],
-  { revalidate: REVALIDATE_SECONDS, tags: ["wix-blogs"] },
+  { revalidate: REVALIDATE_SECONDS },
 );
 
 export async function getAllBlogs(): Promise<BlogItem[]> {
@@ -512,19 +509,16 @@ export async function getLandingContent(): Promise<LandingContent> {
     careersCollectionId
       ? queryCollection<Record<string, unknown>>(careersCollectionId, {
           limit: 100,
-          tags: ["wix-careers"],
         })
       : Promise.resolve([]),
     blogsCollectionId
       ? queryCollection<Record<string, unknown>>(blogsCollectionId, {
           limit: 3,
-          tags: ["wix-blogs"],
         })
       : Promise.resolve([]),
     designsCollectionId
       ? queryCollection<Record<string, unknown>>(designsCollectionId, {
           limit: 100,
-          tags: ["wix-designs"],
         })
       : Promise.resolve([]),
   ]);
