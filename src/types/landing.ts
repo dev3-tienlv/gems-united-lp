@@ -4,6 +4,15 @@ export interface ValueItem {
   description: string;
 }
 
+export interface CareerLocalizedFields {
+  responsibilities?: string;
+  requirements?: string;
+  growthPath?: string;
+  benefits?: string;
+  location?: string;
+  workSchedule?: string;
+}
+
 export interface CareerItem {
   id: string;
   slug: string;
@@ -18,6 +27,7 @@ export interface CareerItem {
   workSchedule?: string;
   imageUrl?: string;
   applyUrl?: string;
+  en?: CareerLocalizedFields;
 }
 
 export interface BlogItem {

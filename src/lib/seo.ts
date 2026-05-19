@@ -7,6 +7,7 @@ import {
   ORG_NAME,
   SITE_URL,
 } from "@/lib/constants";
+import { resolveCareerFields } from "@/lib/career-locale";
 import type { BlogItem, CareerItem } from "@/types/landing";
 import type { Locale } from "@/i18n/types";
 
@@ -48,12 +49,15 @@ export function websiteJsonLd() {
 }
 
 export function jobPostingJsonLd(career: CareerItem, locale: Locale) {
+  const fields = resolveCareerFields(career, locale);
   return {
     "@context": "https://schema.org",
     "@type": "JobPosting",
     title: career.title,
     description:
-      career.summary || career.responsibilities || `${career.title} at ${ORG_NAME}.`,
+      fields.summary ||
+      fields.responsibilities ||
+      `${career.title} at ${ORG_NAME}.`,
     datePosted: new Date().toISOString().slice(0, 10),
     employmentType: career.type,
     hiringOrganization: {
@@ -66,13 +70,13 @@ export function jobPostingJsonLd(career: CareerItem, locale: Locale) {
       "@type": "Place",
       address: {
         "@type": "PostalAddress",
-        addressLocality: career.location || ORG_ADDRESS.addressLocality,
+        addressLocality: fields.location || ORG_ADDRESS.addressLocality,
         addressCountry: ORG_ADDRESS.addressCountry,
       },
     },
     inLanguage: locale,
     directApply: Boolean(career.applyUrl),
-    url: absoluteUrl(`/careers/${career.id}`),
+    url: absoluteUrl(`/careers/${career.slug || career.id}`),
   };
 }
 

@@ -1,7 +1,4 @@
 import type { Metadata } from "next";
-
-export const revalidate = 600;
-
 import { Footer } from "@/components/landing/Footer";
 import { Header } from "@/components/landing/Header";
 import { SectionTitle } from "@/components/landing/SectionTitle";
@@ -10,6 +7,7 @@ import { Reveal } from "@/components/motion/Reveal";
 import { getLocale } from "@/i18n/locale";
 import { getMessages } from "@/i18n/messages";
 import { getAllCareers } from "@/lib/wix-headless";
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Careers at GEMS United",

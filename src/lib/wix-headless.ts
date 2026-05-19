@@ -1,6 +1,6 @@
 import { blogItems, careers, designItems } from "@/data/landing";
-import { unstable_cache } from "next/cache";
 import { DEFAULT_WIX_SITE_ID, SITE_URL } from "@/lib/constants";
+import { WIX_CACHE_TAGS, wixFetchCacheOptions, type WixCacheTag } from "@/lib/wix-cache";
 import type { BlogItem, CareerItem, DesignItem } from "@/types/landing";
 import { logger } from "@/lib/logger";
 import { richContentToHtml } from "@/lib/rich-content";
@@ -31,8 +31,14 @@ function toSafeErrorMessage(error: unknown): string {
 const WIX_API_BASE = "https://www.wixapis.com/wix-data/v2/items/query";
 const WIX_COLLECTIONS_API = "https://www.wixapis.com/wix-data/v2/data-collections";
 const WIX_BLOG_API_BASE = "https://www.wixapis.com/blog/v3/posts";
-const REVALIDATE_SECONDS = 300;
-const BLOG_CACHE_KEY = "wix-all-blogs-v4";
+
+function cacheTagForCollection(collectionId: string): WixCacheTag | undefined {
+  const env = getWixEnv();
+  if (collectionId === env.careersCollectionId) return WIX_CACHE_TAGS.careers;
+  if (collectionId === env.blogsCollectionId) return WIX_CACHE_TAGS.blogs;
+  if (collectionId === env.designsCollectionId) return WIX_CACHE_TAGS.designs;
+  return undefined;
+}
 
 export function getWixEnv() {
   return {
@@ -58,7 +64,7 @@ export async function listCollections(): Promise<Array<{ id: string; displayName
         Authorization: apiKey,
         "wix-site-id": siteId,
       },
-      next: { revalidate: REVALIDATE_SECONDS },
+      cache: "no-store",
     });
 
     if (!response.ok) return [];
@@ -86,6 +92,7 @@ async function queryCollection<T = Record<string, unknown>>(
   if (!apiKey) return [];
 
   const { limit = 6, filter } = options;
+  const cacheTag = cacheTagForCollection(collectionId);
   const response = await fetch(WIX_API_BASE, {
     method: "POST",
     headers: {
@@ -100,7 +107,7 @@ async function queryCollection<T = Record<string, unknown>>(
         paging: { limit },
       },
     }),
-    next: { revalidate: REVALIDATE_SECONDS },
+    ...(cacheTag ? wixFetchCacheOptions([cacheTag]) : wixFetchCacheOptions([WIX_CACHE_TAGS.careers])),
   });
 
   if (!response.ok) {
@@ -174,6 +181,38 @@ function pickExcerptFromRaw(raw: Record<string, unknown>): string {
   return "Read the latest update from GEMS United.";
 }
 
+/** Wix CMS may return plain strings or rich-text / document objects. */
+function wixFieldToText(value: unknown): string | undefined {
+  if (typeof value === "string" && value.trim().length > 0) return value.trim();
+  if (!value || typeof value !== "object") return undefined;
+
+  const obj = value as Record<string, unknown>;
+  if (typeof obj.plainText === "string" && obj.plainText.trim()) return obj.plainText.trim();
+  if (typeof obj.text === "string" && obj.text.trim()) return obj.text.trim();
+  if (typeof obj.html === "string" && obj.html.trim()) {
+    return obj.html
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/p>/gi, "\n")
+      .replace(/<[^>]+>/g, "")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+
+  const fromRich = richContentToHtml(value);
+  if (fromRich) {
+    return fromRich
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/p>/gi, "\n")
+      .replace(/<li>/gi, "• ")
+      .replace(/<\/li>/gi, "\n")
+      .replace(/<[^>]+>/g, "")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+
+  return undefined;
+}
+
 const COMBINING_DIACRITICS = /[\u0300-\u036f]/g;
 const NON_SLUG_CHARS = /[^a-z0-9]+/g;
 
@@ -220,14 +259,27 @@ function normalizeCareer(raw: Record<string, unknown>, idx: number): CareerItem 
   const title = String(raw.title || raw.title_fld || raw.position || "Open Position");
   const rawId = raw._id ?? raw.id ?? raw.slug;
   const id = typeof rawId === "string" && rawId.length > 0 ? rawId : `${slugify(title)}-${idx}`;
-  const toText = (value: unknown): string | undefined =>
-    typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
-
-  const responsibilities = toText(raw.title_fld1 || raw.responsibilities || raw.description);
-  const requirements = toText(raw.title_fld_1 || raw.requirements);
-  const benefits = toText(raw.title_fld_111 || raw.benefits);
-  const growth = toText(raw.title_fld_11 || raw.notes);
+  const responsibilities = wixFieldToText(raw.title_fld1 || raw.responsibilities || raw.description);
+  const requirements = wixFieldToText(raw.title_fld_1 || raw.requirements);
+  const benefits = wixFieldToText(raw.title_fld_111 || raw.benefits);
+  const growth = wixFieldToText(raw.title_fld_11 || raw.notes);
   const summary = [responsibilities, requirements, benefits, growth].filter(Boolean).join("\n\n");
+
+  const enResponsibilities = wixFieldToText(raw.descriptionEnglish);
+  const enRequirements = wixFieldToText(raw.requirementsEnglish);
+  const enGrowth = wixFieldToText(raw.careerPathEnglish);
+  const enBenefits = wixFieldToText(raw.benefitsEnglish);
+  const enLocation = wixFieldToText(raw.locationEnglish);
+  const enWorkSchedule = wixFieldToText(raw.working_hours_english);
+  const enFields = {
+    responsibilities: enResponsibilities,
+    requirements: enRequirements,
+    growthPath: enGrowth,
+    benefits: enBenefits,
+    location: enLocation,
+    workSchedule: enWorkSchedule,
+  };
+  const hasEnglishContent = Object.values(enFields).some(Boolean);
 
   // Generate a URL-friendly slug from the job title.
   // Prefer the Wix-stored slug field if available, otherwise derive from title.
@@ -248,9 +300,10 @@ function normalizeCareer(raw: Record<string, unknown>, idx: number): CareerItem 
     requirements,
     growthPath: growth,
     benefits,
-    workSchedule: toText(raw.locationAImLmVic1 || raw.workSchedule),
+    workSchedule: wixFieldToText(raw.locationAImLmVic1 || raw.workSchedule),
     imageUrl: pickImageFromRaw(raw),
     applyUrl: typeof raw.applyLinkLinkApply === "string" ? raw.applyLinkLinkApply : undefined,
+    ...(hasEnglishContent ? { en: enFields } : {}),
   };
 }
 
@@ -301,7 +354,7 @@ async function getWixBlogBySlug(slug: string): Promise<BlogItem | null> {
         Authorization: apiKey,
         "wix-site-id": siteId,
       },
-      next: { revalidate: REVALIDATE_SECONDS },
+      ...wixFetchCacheOptions([WIX_CACHE_TAGS.blogs]),
     });
 
     if (!response.ok) return null;
@@ -375,8 +428,7 @@ export async function getCareerById(id: string): Promise<CareerItem | null> {
   return getCareerBySlug(id);
 }
 
-const getAllCareersCached = unstable_cache(
-  async (): Promise<CareerItem[]> => {
+export async function getAllCareers(): Promise<CareerItem[]> {
   const { careersCollectionId } = getWixEnv();
   if (!careersCollectionId) return careers;
 
@@ -395,13 +447,6 @@ const getAllCareersCached = unstable_cache(
   }
 
   return careers;
-  },
-  ["wix-all-careers"],
-  { revalidate: REVALIDATE_SECONDS },
-);
-
-export async function getAllCareers(): Promise<CareerItem[]> {
-  return getAllCareersCached();
 }
 
 export async function getBlogBySlug(slug: string): Promise<BlogItem | null> {
@@ -454,8 +499,7 @@ export async function getBlogBySlug(slug: string): Promise<BlogItem | null> {
   return matchBlog(blogItems);
 }
 
-const getAllBlogsCached = unstable_cache(
-  async (): Promise<BlogItem[]> => {
+export async function getAllBlogs(): Promise<BlogItem[]> {
   const { blogsCollectionId } = getWixEnv();
   if (!blogsCollectionId) return blogItems;
 
@@ -471,13 +515,24 @@ const getAllBlogsCached = unstable_cache(
   }
 
   return blogItems;
-  },
-  [BLOG_CACHE_KEY],
-  { revalidate: REVALIDATE_SECONDS },
-);
+}
 
-export async function getAllBlogs(): Promise<BlogItem[]> {
-  return getAllBlogsCached();
+export async function getAllDesigns(): Promise<DesignItem[]> {
+  const { designsCollectionId } = getWixEnv();
+  if (!designsCollectionId) return designItems;
+
+  try {
+    const designsRaw = await queryCollection<Record<string, unknown>>(designsCollectionId, {
+      limit: 100,
+    });
+    if (designsRaw.length > 0) {
+      return designsRaw.map((raw, idx) => normalizeDesign(raw, idx));
+    }
+  } catch (error) {
+    logger.warn("[wix-headless] Falling back to local designs.", toSafeErrorMessage(error));
+  }
+
+  return designItems;
 }
 
 export async function getLatestBlogsExcept(currentSlug: string, limit = 3): Promise<BlogItem[]> {
@@ -498,52 +553,15 @@ export async function getLatestBlogsExcept(currentSlug: string, limit = 3): Prom
 }
 
 export async function getLandingContent(): Promise<LandingContent> {
-  const { careersCollectionId, blogsCollectionId, designsCollectionId } = getWixEnv();
-  const result: LandingContent = {
-    careers,
-    blogs: blogItems,
-    designs: designItems,
-  };
-
-  const [careersQuery, blogsQuery, designsQuery] = await Promise.allSettled([
-    careersCollectionId
-      ? queryCollection<Record<string, unknown>>(careersCollectionId, {
-          limit: 100,
-        })
-      : Promise.resolve([]),
-    blogsCollectionId
-      ? queryCollection<Record<string, unknown>>(blogsCollectionId, {
-          limit: 3,
-        })
-      : Promise.resolve([]),
-    designsCollectionId
-      ? queryCollection<Record<string, unknown>>(designsCollectionId, {
-          limit: 100,
-        })
-      : Promise.resolve([]),
+  const [careersList, blogsList, designsList] = await Promise.all([
+    getAllCareers(),
+    getAllBlogs(),
+    getAllDesigns(),
   ]);
 
-  if (careersQuery.status === "fulfilled" && careersQuery.value.length > 0) {
-    result.careers = ensureUniqueSlugs(
-      careersQuery.value
-        .filter((item) => item.hidden !== true)
-        .map((raw, idx) => normalizeCareer(raw, idx)),
-    );
-  } else if (careersQuery.status === "rejected") {
-    logger.warn("[wix-headless] Falling back to local careers.", toSafeErrorMessage(careersQuery.reason));
-  }
-
-  if (blogsQuery.status === "fulfilled" && blogsQuery.value.length > 0) {
-    result.blogs = blogsQuery.value.map(normalizeBlog);
-  } else if (blogsQuery.status === "rejected") {
-    logger.warn("[wix-headless] Falling back to local blogs.", toSafeErrorMessage(blogsQuery.reason));
-  }
-
-  if (designsQuery.status === "fulfilled" && designsQuery.value.length > 0) {
-    result.designs = designsQuery.value.map((raw, idx) => normalizeDesign(raw, idx));
-  } else if (designsQuery.status === "rejected") {
-    logger.warn("[wix-headless] Falling back to local designs.", toSafeErrorMessage(designsQuery.reason));
-  }
-
-  return result;
+  return {
+    careers: careersList,
+    blogs: blogsList.slice(0, 3),
+    designs: designsList,
+  };
 }

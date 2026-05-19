@@ -1,7 +1,4 @@
 import type { Metadata } from "next";
-
-export const revalidate = 900;
-
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -22,6 +19,7 @@ import { SITE_URL } from "@/lib/constants";
 import { blogPostingJsonLd } from "@/lib/seo";
 import { looksLikeHtml, sanitizeBlogHtml } from "@/lib/sanitize";
 import { getBlogBySlug, getLatestBlogsExcept } from "@/lib/wix-headless";
+export const revalidate = 60;
 
 interface BlogDetailPageProps {
   params: Promise<{ slug: string }>;

@@ -9,6 +9,7 @@ import Link from "next/link";
 import { gemsLetterGradients } from "@/lib/gems-accents";
 import { getMessages } from "@/i18n/messages";
 import type { Locale } from "@/i18n/types";
+import { resolveCareerFields } from "@/lib/career-locale";
 import type { BlogItem, CareerItem, ValueItem } from "@/types/landing";
 
 export function ValueCard({ item }: { item: ValueItem }) {
@@ -57,6 +58,7 @@ export function ValueCard({ item }: { item: ValueItem }) {
 
 export function CareerCard({ item, locale }: { item: CareerItem; locale: Locale }) {
   const text = getMessages(locale);
+  const { location } = resolveCareerFields(item, locale);
   return (
     <Link
       href={`/careers/${item.slug || item.id}`}
@@ -92,7 +94,7 @@ export function CareerCard({ item, locale }: { item: CareerItem; locale: Locale 
       <div className="absolute inset-x-5 bottom-5 flex items-end justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-[11px] font-semibold uppercase tracking-wider text-white/80">
-            {item.location} · {item.type}
+            {location} · {item.type}
           </p>
           <h3 className="mt-1 line-clamp-2 font-display text-lg font-extrabold leading-tight text-white">
             {item.title}

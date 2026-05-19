@@ -1,7 +1,4 @@
 import type { Metadata } from "next";
-
-export const revalidate = 900;
-
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -15,8 +12,10 @@ import { jobPostingJsonLd } from "@/lib/seo";
 import { getLocale } from "@/i18n/locale";
 import { getMessages } from "@/i18n/messages";
 import type { Locale } from "@/i18n/types";
+import { resolveCareerFields } from "@/lib/career-locale";
 import { getAllCareers, getCareerBySlug } from "@/lib/wix-headless";
 import type { CareerItem } from "@/types/landing";
+export const revalidate = 60;
 
 interface CareerDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -124,18 +123,19 @@ function pickRelatedCareers(careers: CareerItem[], currentCareer: CareerItem, li
 }
 
 export async function generateMetadata({ params }: CareerDetailPageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const [{ slug }, locale] = await Promise.all([params, getLocale()]);
   const allCareers = await getAllCareers();
   const career = await getCareerBySlug(slug, allCareers);
   if (!career) return { title: "Not found" };
 
+  const fields = resolveCareerFields(career, locale);
   const path = `/careers/${career.slug}`;
   const description =
-    career.summary?.slice(0, 200) ||
-    career.responsibilities?.slice(0, 200) ||
-    `${career.title} — ${career.location}`;
+    fields.summary?.slice(0, 200) ||
+    fields.responsibilities?.slice(0, 200) ||
+    `${career.title} — ${fields.location}`;
   return {
-    title: `${career.title} — ${career.location}`,
+    title: `${career.title} — ${fields.location}`,
     description,
     alternates: {
       canonical: path,
@@ -162,6 +162,7 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
   const career = await getCareerBySlug(slug, allCareers);
   if (!career) notFound();
   const text = getMessages(locale);
+  const fields = resolveCareerFields(career, locale);
   const relatedCareers = pickRelatedCareers(allCareers, career);
 
   const applyHref =
@@ -169,21 +170,21 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
     (career.applyUrl.startsWith("http://") || career.applyUrl.startsWith("https://"))
       ? career.applyUrl
       : CONTACT_MAILTO;
-  const summaryLines = splitReadableLines(career.summary);
+  const summaryLines = splitReadableLines(fields.summary);
   const summaryItems = buildHierarchicalLines(summaryLines);
   const safeType = safeTypeFor(career, locale);
   const sections = [
-    { title: text.common.responsibilities, lines: splitReadableLines(career.responsibilities) },
-    { title: text.common.requirements, lines: splitReadableLines(career.requirements) },
-    { title: text.common.growthPath, lines: splitReadableLines(career.growthPath) },
-    { title: text.common.benefits, lines: splitReadableLines(career.benefits) },
+    { title: text.common.responsibilities, lines: splitReadableLines(fields.responsibilities) },
+    { title: text.common.requirements, lines: splitReadableLines(fields.requirements) },
+    { title: text.common.growthPath, lines: splitReadableLines(fields.growthPath) },
+    { title: text.common.benefits, lines: splitReadableLines(fields.benefits) },
   ]
     .map((section) => ({
       title: section.title,
       items: buildHierarchicalLines(section.lines),
     }))
     .filter((section) => section.items.length > 0);
-  const workScheduleItems = buildHierarchicalLines(splitReadableLines(career.workSchedule));
+  const workScheduleItems = buildHierarchicalLines(splitReadableLines(fields.workSchedule));
 
   return (
     <div className="bg-gradient-to-br from-[color:var(--hero-from)] via-[color:var(--hero-via)] to-[color:var(--hero-to)]">
@@ -223,7 +224,7 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
                 {career.title}
               </h1>
               <p className="mt-5 text-base text-[color:var(--muted)] md:text-lg">
-                {career.location} · {safeType}
+                {fields.location} · {safeType}
               </p>
 
               <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -365,7 +366,7 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
                 </p>
               )}
 
-              {(career.location || career.workSchedule) && (
+              {(fields.location || fields.workSchedule) && (
                 <div className="mt-6 space-y-6">
                   <section className="rounded-3xl border border-[color:var(--line)] bg-[color:var(--surface)] p-5 shadow-[0_10px_30px_rgba(25,12,52,0.04)] md:p-6">
                     <h3 className="flex items-center gap-3 text-sm font-extrabold uppercase tracking-[0.14em] text-[color:var(--ink)]">
@@ -376,10 +377,10 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
                     </h3>
                     <div className="mt-4 flex gap-3.5 pl-3 text-base leading-7 text-[color:var(--muted)] md:pl-4 md:text-[17px]">
                       <span className="mt-2.5 h-2 w-2 shrink-0 rounded-full bg-[color:var(--brand)] shadow-[0_0_0_4px_rgba(111,66,201,0.12)]" />
-                      <p className="text-[color:var(--ink-2)]">{career.location}</p>
+                      <p className="text-[color:var(--ink-2)]">{fields.location}</p>
                     </div>
                   </section>
-                  {career.workSchedule ? (
+                  {fields.workSchedule ? (
                     <section className="rounded-3xl border border-[color:var(--line)] bg-[color:var(--surface)] p-5 shadow-[0_10px_30px_rgba(25,12,52,0.04)] md:p-6">
                       <h3 className="flex items-center gap-3 text-sm font-extrabold uppercase tracking-[0.14em] text-[color:var(--ink)]">
                         <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-[color:var(--brand-soft)] px-2 text-[11px] tracking-normal text-[color:var(--brand)]">
@@ -422,7 +423,7 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
                   <div className="flex justify-between gap-4">
                     <dt className="text-[color:var(--muted)]">{text.common.location}</dt>
                     <dd className="text-right font-semibold text-[color:var(--ink)]">
-                      {career.location}
+                      {fields.location}
                     </dd>
                   </div>
                   <div className="flex justify-between gap-4">

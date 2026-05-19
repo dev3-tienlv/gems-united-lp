@@ -1,7 +1,4 @@
 import type { Metadata } from "next";
-
-export const revalidate = 300;
-
 import { Footer } from "@/components/landing/Footer";
 import { Header } from "@/components/landing/Header";
 import { Hero } from "@/components/landing/Hero";
@@ -15,6 +12,7 @@ import { Reveal } from "@/components/motion/Reveal";
 import { getLocale } from "@/i18n/locale";
 import { getMessages } from "@/i18n/messages";
 import { getLandingContent } from "@/lib/wix-headless";
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   alternates: {
