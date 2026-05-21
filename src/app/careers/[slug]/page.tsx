@@ -13,6 +13,7 @@ import { getLocale } from "@/i18n/locale";
 import { getMessages } from "@/i18n/messages";
 import type { Locale } from "@/i18n/types";
 import { resolveCareerFields } from "@/lib/career-locale";
+import { formatEmploymentType } from "@/lib/employment-type";
 import { getAllCareers, getCareerBySlug } from "@/lib/wix-headless";
 import type { CareerItem } from "@/types/landing";
 export const revalidate = 60;
@@ -20,10 +21,6 @@ export const revalidate = 60;
 interface CareerDetailPageProps {
   params: Promise<{ slug: string }>;
 }
-
-// Wix may return a sentence in `type` field; treat anything longer than this as
-// noise and fall back to the localized "Full-time" label.
-const TYPE_FIELD_MAX_LENGTH = 60;
 
 function splitReadableLines(input?: string): string[] {
   if (!input) return [];
@@ -44,7 +41,33 @@ interface HierarchicalLineItem {
   children: string[];
 }
 
-function buildHierarchicalLines(lines: string[]): HierarchicalLineItem[] {
+interface BuildHierarchicalLinesOptions {
+  /**
+   * EN work schedule often uses "Working days: …" with sub-lines "Morning shift: …"
+   * (colon mid-line). VI uses trailing colon parents ("Thứ 7:"). Enable for work schedule only.
+   */
+  groupMidColonLabelRuns?: boolean;
+}
+
+function isLabelValueLine(text: string): boolean {
+  return /^[^:：]+[:：]\s*.+/.test(text);
+}
+
+function hasFollowingLabelValueLines(lines: string[], index: number): boolean {
+  for (let i = index + 1; i < lines.length; i++) {
+    const next = cleanLine(lines[i]);
+    if (!next) continue;
+    if (/[:：]$/.test(next)) return false;
+    return isLabelValueLine(next);
+  }
+  return false;
+}
+
+function buildHierarchicalLines(
+  lines: string[],
+  options: BuildHierarchicalLinesOptions = {},
+): HierarchicalLineItem[] {
+  const { groupMidColonLabelRuns = false } = options;
   const items: HierarchicalLineItem[] = [];
   let currentParentIndex: number | null = null;
 
@@ -69,37 +92,39 @@ function buildHierarchicalLines(lines: string[]): HierarchicalLineItem[] {
     return true;
   };
 
-  lines.forEach((line) => {
-    const text = cleanLine(line);
-    if (!text) return;
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+    const text = cleanLine(lines[lineIndex]);
+    if (!text) continue;
 
     if (/^[([{]/.test(text) && appendToPrevious(text)) {
-      return;
+      continue;
     }
 
-    const isParent = /[:：]$/.test(text);
-    if (isParent) {
+    const isTrailingColonParent = /[:：]$/.test(text);
+    if (isTrailingColonParent) {
       items.push({ text, children: [] });
       currentParentIndex = items.length - 1;
-      return;
+      continue;
+    }
+
+    const isMidColonParent =
+      groupMidColonLabelRuns && isLabelValueLine(text) && hasFollowingLabelValueLines(lines, lineIndex);
+
+    if (isMidColonParent) {
+      items.push({ text, children: [] });
+      currentParentIndex = items.length - 1;
+      continue;
     }
 
     if (currentParentIndex !== null) {
       items[currentParentIndex]?.children.push(text);
-      return;
+      continue;
     }
 
     items.push({ text, children: [] });
-  });
+  }
 
   return items;
-}
-
-function safeTypeFor(career: { type: string }, locale: Locale): string {
-  if (career.type.length > TYPE_FIELD_MAX_LENGTH) {
-    return locale === "vi" ? "Toàn thời gian" : "Full-time";
-  }
-  return career.type;
 }
 
 function normalizeMatchValue(value?: string): string {
@@ -172,7 +197,7 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
       : CONTACT_MAILTO;
   const summaryLines = splitReadableLines(fields.summary);
   const summaryItems = buildHierarchicalLines(summaryLines);
-  const safeType = safeTypeFor(career, locale);
+  const employmentLabel = formatEmploymentType(career.type, locale);
   const sections = [
     { title: text.common.responsibilities, lines: splitReadableLines(fields.responsibilities) },
     { title: text.common.requirements, lines: splitReadableLines(fields.requirements) },
@@ -184,7 +209,9 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
       items: buildHierarchicalLines(section.lines),
     }))
     .filter((section) => section.items.length > 0);
-  const workScheduleItems = buildHierarchicalLines(splitReadableLines(fields.workSchedule));
+  const workScheduleItems = buildHierarchicalLines(splitReadableLines(fields.workSchedule), {
+    groupMidColonLabelRuns: true,
+  });
 
   return (
     <div className="bg-gradient-to-br from-[color:var(--hero-from)] via-[color:var(--hero-via)] to-[color:var(--hero-to)]">
@@ -224,7 +251,7 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
                 {career.title}
               </h1>
               <p className="mt-5 text-base text-[color:var(--muted)] md:text-lg">
-                {fields.location} · {safeType}
+                {fields.location} · {employmentLabel}
               </p>
 
               <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -429,7 +456,7 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
                   <div className="flex justify-between gap-4">
                     <dt className="text-[color:var(--muted)]">{text.common.type}</dt>
                     <dd className="text-right font-semibold text-[color:var(--ink)]">
-                      {safeType}
+                      {employmentLabel}
                     </dd>
                   </div>
                   <div className="flex justify-between gap-4">

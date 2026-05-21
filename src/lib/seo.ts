@@ -8,6 +8,7 @@ import {
   SITE_URL,
 } from "@/lib/constants";
 import { resolveCareerFields } from "@/lib/career-locale";
+import { employmentTypeForSchema } from "@/lib/employment-type";
 import type { BlogItem, CareerItem } from "@/types/landing";
 import type { Locale } from "@/i18n/types";
 
@@ -59,7 +60,7 @@ export function jobPostingJsonLd(career: CareerItem, locale: Locale) {
       fields.responsibilities ||
       `${career.title} at ${ORG_NAME}.`,
     datePosted: new Date().toISOString().slice(0, 10),
-    employmentType: career.type,
+    employmentType: employmentTypeForSchema(career.type),
     hiringOrganization: {
       "@type": "Organization",
       name: ORG_NAME,

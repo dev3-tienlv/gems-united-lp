@@ -1,5 +1,6 @@
 import { blogItems, careers, designItems } from "@/data/landing";
 import { DEFAULT_WIX_SITE_ID, SITE_URL } from "@/lib/constants";
+import { employmentTypeFromWix } from "@/lib/employment-type";
 import { WIX_CACHE_TAGS, wixFetchCacheOptions, type WixCacheTag } from "@/lib/wix-cache";
 import type { BlogItem, CareerItem, DesignItem } from "@/types/landing";
 import { logger } from "@/lib/logger";
@@ -294,7 +295,7 @@ function normalizeCareer(raw: Record<string, unknown>, idx: number): CareerItem 
     slug,
     title,
     location: String(raw.location || raw.locationAImLmVic || "Da Nang"),
-    type: String(raw.type || raw.employmentType || raw.jobType || "Full-time"),
+    type: employmentTypeFromWix(raw),
     summary: summary || undefined,
     responsibilities,
     requirements,
