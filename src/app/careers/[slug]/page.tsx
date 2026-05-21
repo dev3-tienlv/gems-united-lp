@@ -107,17 +107,18 @@ function buildHierarchicalLines(
       continue;
     }
 
+    // Nested lines under "Thứ 2 – Thứ 7:" (VI) or mid-colon header children (EN)
+    if (currentParentIndex !== null) {
+      items[currentParentIndex]?.children.push(text);
+      continue;
+    }
+
     const isMidColonParent =
       groupMidColonLabelRuns && isLabelValueLine(text) && hasFollowingLabelValueLines(lines, lineIndex);
 
     if (isMidColonParent) {
       items.push({ text, children: [] });
       currentParentIndex = items.length - 1;
-      continue;
-    }
-
-    if (currentParentIndex !== null) {
-      items[currentParentIndex]?.children.push(text);
       continue;
     }
 
