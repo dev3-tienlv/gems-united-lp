@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AuroraCursor } from "@/components/effects/AuroraCursor";
 import { WixInboxChatWidget } from "@/components/landing/WixInboxChatWidget";
 
 export function DeferredGlobalEffects() {
@@ -24,10 +23,5 @@ export function DeferredGlobalEffects() {
 
   if (!isReady) return null;
 
-  return (
-    <>
-      <WixInboxChatWidget />
-      <AuroraCursor />
-    </>
-  );
+  return <WixInboxChatWidget />;
 }

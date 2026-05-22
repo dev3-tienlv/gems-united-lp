@@ -16,6 +16,8 @@
   --brand-light: #8c52ff;
   --brand-soft: #efe5ff;
   --blob-primary: #6d4da9;
+  --deco-purple: #8c52ff;
+  --deco-lime: #a6ff00;
 
   --accent: #7ed957;
   --accent-strong: #63c746;
@@ -36,8 +38,6 @@
   --about-hero-to: #ece4ff;
   --about-card-shadow: 0 24px 48px rgba(111, 66, 201, 0.1);
   --about-pipeline-connector: rgba(140, 82, 255, 0.3);
-  --cursor-from: rgba(140, 82, 255, 0.2);
-  --cursor-to: rgba(126, 217, 87, 0.13);
 
   --philosophy-from: #f5efff;
   --philosophy-via: #f7f5ff;
@@ -75,8 +75,6 @@
   --about-hero-to: #2a1f4a;
   --about-card-shadow: 0 24px 48px rgba(0, 0, 0, 0.3);
   --about-pipeline-connector: rgba(140, 82, 255, 0.45);
-  --cursor-from: rgba(140, 82, 255, 0.22);
-  --cursor-to: rgba(126, 217, 87, 0.16);
 
   --philosophy-from: #1a1628;
   --philosophy-via: #161222;

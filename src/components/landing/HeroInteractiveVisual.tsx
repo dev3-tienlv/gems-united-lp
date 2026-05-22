@@ -11,6 +11,7 @@ export function HeroInteractiveVisual() {
       containerClassName="h-[min(380px,calc(100vw-48px))] w-[min(380px,calc(100vw-48px))] md:h-[460px] md:w-[460px]"
       imageClassName="drop-shadow-[0_22px_24px_rgba(27,19,50,0.22)]"
       showCornerAccents
+      showTopRightAccent
       priority
     />
   );

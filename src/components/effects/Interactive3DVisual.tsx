@@ -2,6 +2,12 @@
 
 import Image from "next/image";
 import { useEffect, useRef } from "react";
+import {
+  DEFAULT_LIME,
+  DEFAULT_PURPLE,
+  SparkDecoMark,
+  TitleDecoMark,
+} from "@/components/effects/HeroDecoMarks";
 
 type MotionState = {
   rotateX: number;
@@ -35,6 +41,8 @@ interface Interactive3DVisualProps {
   imageClassName?: string;
   /** Render the soft brand/accent corner dots. */
   showCornerAccents?: boolean;
+  /** Larger title-deco mark at top-right (hero). */
+  showTopRightAccent?: boolean;
   /** Mark the image as high-priority (above the fold). Defaults to lazy. */
   priority?: boolean;
 }
@@ -48,6 +56,7 @@ export function Interactive3DVisual({
   containerClassName,
   imageClassName = "",
   showCornerAccents = false,
+  showTopRightAccent = false,
   priority = false,
 }: Interactive3DVisualProps) {
   const cardRef = useRef<HTMLDivElement | null>(null);
@@ -125,15 +134,30 @@ export function Interactive3DVisual({
   }, []);
 
   return (
-    <div className="relative">
+    <div className="relative overflow-visible">
+      {showTopRightAccent ? (
+        <TitleDecoMark
+          stroke={DEFAULT_PURPLE}
+          strokeOpacity={0.82}
+          className="pointer-events-none absolute -right-3 -top-3 z-[1] h-24 w-24 md:-right-4 md:-top-4 md:h-28 md:w-28"
+        />
+      ) : null}
       {showCornerAccents ? (
         <>
-          <div className="pointer-events-none absolute -left-8 -top-8 h-24 w-24 rounded-full bg-[color:var(--brand)]/14" />
-          <div className="pointer-events-none absolute -bottom-8 -right-8 h-24 w-24 rounded-full bg-[color:var(--accent)]/12" />
+          <SparkDecoMark
+            stroke={DEFAULT_PURPLE}
+            strokeOpacity={0.82}
+            className="pointer-events-none absolute -left-6 -top-6 z-[1] h-24 w-24 md:-left-8 md:-top-8 md:h-28 md:w-28"
+          />
+          <TitleDecoMark
+            stroke={DEFAULT_LIME}
+            strokeOpacity={0.82}
+            className="pointer-events-none absolute -bottom-5 -right-5 z-[1] h-24 w-24 md:-bottom-6 md:-right-6 md:h-28 md:w-28"
+          />
         </>
       ) : null}
 
-      <div ref={cardRef} className="group relative animate-float-gentle [perspective:1200px]">
+      <div ref={cardRef} className="relative z-[2] animate-float-gentle [perspective:1200px]">
         <div
           ref={glowRef}
           className="pointer-events-none absolute left-1/2 top-1/2 h-[72%] w-[72%] -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl transition-opacity duration-500"

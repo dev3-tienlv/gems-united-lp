@@ -14,10 +14,8 @@ export function Hero({ locale }: HeroProps) {
   return (
     <section
       id="home"
-      className="relative overflow-x-clip bg-gradient-to-br from-[color:var(--hero-from)] via-[color:var(--hero-via)] to-[color:var(--hero-to)]"
+      className="relative overflow-visible bg-gradient-to-br from-[color:var(--hero-from)] via-[color:var(--hero-via)] to-[color:var(--hero-to)]"
     >
-      <PurpleBlobs />
-
       <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-12 px-5 pb-24 pt-16 md:grid-cols-[1.1fr_1fr] md:px-8 md:pb-28 md:pt-24">
         <Reveal>
           <p className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-[color:var(--brand)] shadow-[0_4px_18px_rgba(111,66,201,0.12)] [background-color:var(--hero-badge-bg)]">
@@ -61,28 +59,11 @@ export function Hero({ locale }: HeroProps) {
           </div>
         </Reveal>
 
-        <Reveal delay={0.1} className="relative flex items-center justify-center">
+        <Reveal delay={0.1} className="relative flex items-center justify-center overflow-visible">
           <HeroInteractiveVisual />
         </Reveal>
       </div>
 
     </section>
-  );
-}
-
-function PurpleBlobs() {
-  return (
-    <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-      <svg
-        className="absolute -right-6 -top-24 h-[360px] w-[52%] min-w-[340px] sm:-right-8 sm:-top-24 sm:h-[420px] md:-right-10 md:-top-28 md:h-[490px]"
-        viewBox="0 0 1000 560"
-        fill="var(--blob-primary)"
-        preserveAspectRatio="none"
-      >
-        <path d="M0 0H1000V470C947 344 874 237 755 215C650 198 566 244 468 244C355 244 267 168 238 70C230 44 228 18 228 0H0Z" />
-      </svg>
-      <div className="absolute left-[14%] top-[14%] h-3 w-3 rounded-full bg-[color:var(--hero-spark)]" />
-      <div className="absolute left-[24%] top-[24%] h-1.5 w-1.5 rounded-full bg-[color:var(--hero-spark)]/80" />
-    </div>
   );
 }
