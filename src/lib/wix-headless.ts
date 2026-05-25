@@ -1,8 +1,8 @@
-import { blogItems, careers, designItems } from "@/data/landing";
+import { blogItems, careers, companyImageItems, designItems } from "@/data/landing";
 import { DEFAULT_WIX_SITE_ID, SITE_URL } from "@/lib/constants";
 import { employmentTypeFromWix } from "@/lib/employment-type";
 import { WIX_CACHE_TAGS, wixFetchCacheOptions, type WixCacheTag } from "@/lib/wix-cache";
-import type { BlogItem, CareerItem, DesignItem } from "@/types/landing";
+import type { BlogItem, CareerItem, CompanyImageItem, DesignItem } from "@/types/landing";
 import { logger } from "@/lib/logger";
 import { richContentToHtml } from "@/lib/rich-content";
 import { toWixStaticImageUrl } from "@/lib/wix-media";
@@ -23,6 +23,7 @@ interface LandingContent {
   careers: CareerItem[];
   blogs: BlogItem[];
   designs: DesignItem[];
+  companyImages: CompanyImageItem[];
 }
 
 function toSafeErrorMessage(error: unknown): string {
@@ -38,6 +39,7 @@ function cacheTagForCollection(collectionId: string): WixCacheTag | undefined {
   if (collectionId === env.careersCollectionId) return WIX_CACHE_TAGS.careers;
   if (collectionId === env.blogsCollectionId) return WIX_CACHE_TAGS.blogs;
   if (collectionId === env.designsCollectionId) return WIX_CACHE_TAGS.designs;
+  if (collectionId === env.companyImagesCollectionId) return WIX_CACHE_TAGS.companyImages;
   return undefined;
 }
 
@@ -48,6 +50,7 @@ export function getWixEnv() {
     careersCollectionId: process.env.WIX_CAREERS_COLLECTION_ID,
     blogsCollectionId: process.env.WIX_BLOGS_COLLECTION_ID,
     designsCollectionId: process.env.WIX_DESIGNS_COLLECTION_ID,
+    companyImagesCollectionId: process.env.WIX_COMPANY_IMAGES_COLLECTION_ID,
   };
 }
 
@@ -405,6 +408,33 @@ function normalizeDesign(raw: Record<string, unknown>, idx: number): DesignItem 
   };
 }
 
+function isCompanyImagePublished(raw: Record<string, unknown>): boolean {
+  const published = raw.isPublished ?? raw.published ?? raw.isPublished_fld;
+  if (published === true || published === "true") return true;
+  if (published === false || published === "false") return false;
+  return published !== false;
+}
+
+function normalizeCompanyImage(raw: Record<string, unknown>, idx: number): CompanyImageItem {
+  const title = String(
+    raw.imageTitle || raw.title || raw.title_fld || raw.name || `Image ${idx + 1}`,
+  );
+  const rawId = raw._id ?? raw.id;
+  const id = typeof rawId === "string" && rawId.length > 0 ? rawId : `${slugify(title)}-${idx}`;
+  const uploadDateRaw = raw.uploadDate || raw.dateUploaded || raw._createdDate || raw.createdDate;
+
+  return {
+    id,
+    title,
+    description: wixFieldToText(raw.imageDescription || raw.description || raw.description_fld),
+    imageUrl: pickImageFromRaw({
+      ...raw,
+      image: raw.imageFile ?? raw.image_fld ?? raw.image,
+    }),
+    uploadDate: typeof uploadDateRaw === "string" ? uploadDateRaw : undefined,
+  };
+}
+
 /**
  * Find a career by its slug (preferred) or fall back to id for backward
  * compatibility with any existing bookmarked UUID-based URLs.
@@ -553,16 +583,43 @@ export async function getLatestBlogsExcept(currentSlug: string, limit = 3): Prom
     .slice(0, limit);
 }
 
+export async function getAllCompanyImages(): Promise<CompanyImageItem[]> {
+  const { companyImagesCollectionId } = getWixEnv();
+  if (!companyImagesCollectionId) return companyImageItems;
+
+  try {
+    const imagesRaw = await queryCollection<Record<string, unknown>>(companyImagesCollectionId, {
+      limit: 100,
+    });
+    if (imagesRaw.length > 0) {
+      return imagesRaw
+        .filter(isCompanyImagePublished)
+        .map((raw, idx) => normalizeCompanyImage(raw, idx))
+        .sort((a, b) => {
+          const dateA = a.uploadDate ? new Date(a.uploadDate).getTime() : 0;
+          const dateB = b.uploadDate ? new Date(b.uploadDate).getTime() : 0;
+          return dateB - dateA;
+        });
+    }
+  } catch (error) {
+    logger.warn("[wix-headless] Falling back to local company images.", toSafeErrorMessage(error));
+  }
+
+  return companyImageItems;
+}
+
 export async function getLandingContent(): Promise<LandingContent> {
-  const [careersList, blogsList, designsList] = await Promise.all([
+  const [careersList, blogsList, designsList, companyImagesList] = await Promise.all([
     getAllCareers(),
     getAllBlogs(),
     getAllDesigns(),
+    getAllCompanyImages(),
   ]);
 
   return {
     careers: careersList,
     blogs: blogsList.slice(0, 3),
     designs: designsList,
+    companyImages: companyImagesList,
   };
 }

@@ -51,3 +51,11 @@ export interface DesignItem {
   category?: string;
   href?: string;
 }
+
+export interface CompanyImageItem {
+  id: string;
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  uploadDate?: string;
+}

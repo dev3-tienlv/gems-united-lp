@@ -4,6 +4,7 @@ import { Header } from "@/components/landing/Header";
 import { Hero } from "@/components/landing/Hero";
 import { Offers } from "@/components/landing/Offers";
 import { BrandPhilosophy } from "@/components/landing/BrandPhilosophy";
+import { CompanyGallery } from "@/components/landing/CompanyGallery";
 import { OurDesigns } from "@/components/landing/OurDesigns";
 import { ContactSection } from "@/components/landing/ContactSection";
 import { SectionTitle } from "@/components/landing/SectionTitle";
@@ -29,6 +30,8 @@ export default async function Home() {
       <Header locale={locale} />
       <main id="main-content">
         <Hero locale={locale} />
+
+        <CompanyGallery items={content.companyImages} locale={locale} />
 
         <Offers locale={locale} />
 

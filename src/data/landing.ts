@@ -1,4 +1,4 @@
-import type { BlogItem, CareerItem, DesignItem } from "@/types/landing";
+import type { BlogItem, CareerItem, CompanyImageItem, DesignItem } from "@/types/landing";
 
 export const careers: CareerItem[] = [
   { id: "digital-marketing-executive", slug: "digital-marketing-executive", title: "Digital Marketing Executive", location: "Da Nang", type: "Full-time" },
@@ -35,5 +35,7 @@ export const designItems: DesignItem[] = [
   { id: "design-05", title: "Fitness Product Visuals", category: "Creative" },
   { id: "design-06", title: "Global Market Variant Set", category: "Localization" },
 ];
+
+export const companyImageItems: CompanyImageItem[] = [];
 
 export const LOGO_URL = "/logo-main.png";

@@ -42,17 +42,28 @@ function extractWixFileId(url: string): string | null {
 
 interface WixImageDeliveryOptions {
   width: number;
+  height?: number;
   quality?: number;
+  mode?: "fit" | "fill";
 }
 
 export function withWixImageDelivery(url: string, opts: WixImageDeliveryOptions): string {
   const fileId = extractWixFileId(url);
   if (!fileId) return url;
   const quality = opts.quality ?? 82;
+  const mode = opts.mode ?? "fit";
   const safeWidth = Math.max(64, Math.min(2400, Math.round(opts.width)));
+  const safeHeight = Math.min(
+    2400,
+    opts.height ? Math.round(opts.height) : Math.min(2400, safeWidth * 3),
+  );
+
+  if (mode === "fill") {
+    return `https://${WIX_STATIC_HOST}/media/${fileId}/v1/fill/w_${safeWidth},h_${safeHeight},al_c,q_${quality},enc_auto/file.jpg`;
+  }
+
   // Wix CDN requires both w_ and h_; we set h to a large multiple so width is the binding constraint
   // for typical landscape/portrait images (<= 3:1). Trailing must be a clean filename, not the fileId.
-  const safeHeight = Math.min(2400, safeWidth * 3);
   return `https://${WIX_STATIC_HOST}/media/${fileId}/v1/fit/w_${safeWidth},h_${safeHeight},al_c,q_${quality},enc_auto/file.jpg`;
 }
 

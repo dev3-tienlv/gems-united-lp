@@ -74,6 +74,22 @@ export const messagesVi = {
         "Tên GEMS United là lời hứa: thiết kế, hệ thống và chiến dịch đều hướng tới sản phẩm gốc, moat số và giá trị cảm xúc — không phải commodity chồng giảm giá.",
       commitment: "Cam kết chiến lược",
     },
+    companyGallery: {
+      eyebrow: "Hình ảnh công ty",
+      title: "Khoảnh khắc tại GEMS United",
+      description:
+        "Khám phá không gian làm việc, đội ngũ và hành trình vận hành POD của chúng tôi",
+      emptyState:
+        "Thư viện hình ảnh đang được cập nhật. Liên hệ với chúng tôi để xem thêm hình ảnh về văn hóa và vận hành tại GEMS United.",
+      ctaPrimary: "Liên hệ ngay",
+      sliderAriaLabel: "Thư viện hình ảnh công ty",
+      prevSlide: "Ảnh trước",
+      nextSlide: "Ảnh tiếp theo",
+      goToSlide: "Xem ảnh",
+      pauseAutoplay: "Tạm dừng",
+      playAutoplay: "Tự động phát",
+      badge: "GEMS United",
+    },
   },
   offers: {
     eyebrow: "Sứ mệnh của GEMS United",

@@ -74,6 +74,21 @@ export const messagesEn = {
         "GEMS United is a pledge: every design, system, and campaign compounds toward original creative, a measurable digital moat, and durable emotion—not interchangeable commodities on discount.",
       commitment: "Strategic commitment",
     },
+    companyGallery: {
+      eyebrow: "Company gallery",
+      title: "Life at GEMS United",
+      description: "Explore our workspace, team, and POD operations",
+      emptyState:
+        "Our company gallery is being updated. Reach out to see more about our culture and operations at GEMS United.",
+      ctaPrimary: "Contact us",
+      sliderAriaLabel: "Company image gallery",
+      prevSlide: "Previous image",
+      nextSlide: "Next image",
+      goToSlide: "View image",
+      pauseAutoplay: "Pause",
+      playAutoplay: "Autoplay",
+      badge: "GEMS United",
+    },
   },
   offers: {
     eyebrow: "GEMS United mission",

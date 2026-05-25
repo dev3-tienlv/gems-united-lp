@@ -5,6 +5,7 @@ export const WIX_CACHE_TAGS = {
   careers: "wix-careers",
   blogs: "wix-blogs",
   designs: "wix-designs",
+  companyImages: "wix-company-images",
 } as const;
 
 export type WixCacheTag = (typeof WIX_CACHE_TAGS)[keyof typeof WIX_CACHE_TAGS];
@@ -15,6 +16,7 @@ const PATHS_BY_TAG: Record<WixCacheTag, string[]> = {
   [WIX_CACHE_TAGS.careers]: ["/", "/careers"],
   [WIX_CACHE_TAGS.blogs]: ["/", "/blogs"],
   [WIX_CACHE_TAGS.designs]: ["/"],
+  [WIX_CACHE_TAGS.companyImages]: ["/"],
 };
 
 /** ISR fallback TTL for pages and Wix fetches (seconds). Dev defaults to 0 (always fresh). */
