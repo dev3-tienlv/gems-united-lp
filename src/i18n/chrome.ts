@@ -17,6 +17,7 @@ const chromeMessages: Record<Locale, ChromeMessages> = {
     openMenu: "Mở menu",
     closeMenu: "Đóng menu",
     skipToContent: "Đi tới nội dung chính",
+    scrollToTop: "Cuộn lên đầu trang",
   },
   en: {
     nav: {
@@ -34,6 +35,7 @@ const chromeMessages: Record<Locale, ChromeMessages> = {
     openMenu: "Open menu",
     closeMenu: "Close menu",
     skipToContent: "Skip to main content",
+    scrollToTop: "Scroll to top",
   },
 };
 

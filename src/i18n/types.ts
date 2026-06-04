@@ -20,4 +20,5 @@ export interface ChromeMessages {
   openMenu: string;
   closeMenu: string;
   skipToContent: string;
+  scrollToTop: string;
 }

@@ -7,6 +7,7 @@ import { BrandPhilosophy } from "@/components/landing/BrandPhilosophy";
 import { CompanyGallery } from "@/components/landing/CompanyGallery";
 import { OurDesigns } from "@/components/landing/OurDesigns";
 import { ContactSection } from "@/components/landing/ContactSection";
+import { ScrollToTop } from "@/components/landing/ScrollToTop";
 import { SectionTitle } from "@/components/landing/SectionTitle";
 import { BlogCard, CareerCard, ValueCard } from "@/components/landing/cards";
 import { Reveal } from "@/components/motion/Reveal";
@@ -100,6 +101,7 @@ export default async function Home() {
         <ContactSection locale={locale} sectionClassName="bg-[color:var(--surface)] pb-40 pt-20 md:pb-40 md:pt-28" />
       </main>
       <Footer locale={locale} />
+      <ScrollToTop locale={locale} />
     </div>
   );
 }
