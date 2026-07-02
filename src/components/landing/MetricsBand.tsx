@@ -17,7 +17,7 @@ export function MetricsBand({ metrics, accent = "brand" }: MetricsBandProps) {
       : "linear-gradient(135deg, var(--brand), var(--brand-light))";
 
   return (
-    <section className="relative overflow-hidden py-14 md:py-20">
+    <section className="relative overflow-hidden py-7 md:py-20">
       <div
         className="absolute inset-0 bg-gradient-to-br from-[color:var(--brand-soft)]/55 via-[color:var(--surface)] to-[color:var(--accent)]/18"
         aria-hidden="true"

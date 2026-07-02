@@ -52,10 +52,10 @@ export function withWixImageDelivery(url: string, opts: WixImageDeliveryOptions)
   if (!fileId) return url;
   const quality = opts.quality ?? 82;
   const mode = opts.mode ?? "fit";
-  const safeWidth = Math.max(64, Math.min(2400, Math.round(opts.width)));
+  const safeWidth = Math.max(64, Math.min(3840, Math.round(opts.width)));
   const safeHeight = Math.min(
-    2400,
-    opts.height ? Math.round(opts.height) : Math.min(2400, safeWidth * 3),
+    3840,
+    opts.height ? Math.round(opts.height) : Math.min(3840, safeWidth * 3),
   );
 
   if (mode === "fill") {

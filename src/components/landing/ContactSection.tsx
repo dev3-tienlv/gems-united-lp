@@ -20,7 +20,7 @@ const MAP_SRC =
 
 export function ContactSection({
   id = "contact",
-  sectionClassName = "bg-[color:var(--surface)] py-20 md:py-28",
+  sectionClassName = "bg-[color:var(--surface)] py-10 md:py-28",
   locale,
 }: ContactSectionProps) {
   const text = getMessages(locale);

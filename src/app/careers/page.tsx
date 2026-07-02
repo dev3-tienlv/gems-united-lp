@@ -26,7 +26,7 @@ export default async function CareersPage() {
     <div className="bg-[color:var(--soft)]">
       <Header locale={locale} />
       <main id="main-content">
-        <section className="bg-[color:var(--soft)] pb-40 pt-20 md:pb-40 md:pt-28">
+        <section className="bg-[color:var(--soft)] pb-20 pt-10 md:pb-40 md:pt-28">
           <div className="mx-auto w-full max-w-7xl px-5 md:px-8">
             <Reveal>
               <SectionTitle
@@ -36,7 +36,7 @@ export default async function CareersPage() {
               />
             </Reveal>
 
-            <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-14 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
               {careers.map((career, index) => (
                 <Reveal key={`${career.id}-${index}`} delay={(index % 3) * 0.05}>
                   <CareerCard item={career} locale={locale} />

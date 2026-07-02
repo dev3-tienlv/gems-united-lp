@@ -6,6 +6,7 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { ORG_DESCRIPTION, ORG_NAME, SITE_URL } from "@/lib/constants";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 import { themeBlockingScript } from "@/lib/theme-script";
+import { ScrollToTop } from "@/components/landing/ScrollToTop";
 import { getLocale } from "@/i18n/locale";
 import "./globals.css";
 
@@ -78,6 +79,7 @@ export default async function RootLayout({
           Skip to content
         </a>
         {children}
+        <ScrollToTop locale={locale} />
         <WebVitalsReporter />
         <DeferredGlobalEffects />
       </body>

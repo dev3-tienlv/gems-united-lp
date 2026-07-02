@@ -28,7 +28,7 @@ export function MissionVisual({ locale }: MissionVisualProps) {
       />
 
       <div className="relative rounded-[28px] border border-[color:var(--brand)]/15 bg-[color:var(--soft)]/80 p-2.5 shadow-[0_24px_52px_rgba(111,66,201,0.1)] ring-1 ring-[color:var(--line)] backdrop-blur-md sm:p-3 md:p-3.5">
-        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3 md:gap-3.5">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-3.5">
           {tiles.map((tile, index) => {
             const letter = getTileLetter(index);
             const accent = missionTileGradients[letter];

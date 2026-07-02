@@ -18,7 +18,7 @@ export function ShowMoreGrid({ children, initialCount = 12, step = 12, showMoreT
 
   return (
     <div className="flex flex-col items-center w-full">
-      <div className="grid w-full grid-cols-1 justify-items-center gap-4 sm:grid-cols-2 md:grid-cols-4 md:gap-5">
+      <div className="grid w-full grid-cols-2 justify-items-center gap-3 sm:gap-4 md:grid-cols-4 md:gap-5">
         {visibleItems}
       </div>
 

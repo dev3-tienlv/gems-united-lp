@@ -10,7 +10,7 @@ interface OffersProps {
 export function Offers({ locale }: OffersProps) {
   const text = getMessages(locale);
   return (
-    <section id="offers" className="relative bg-[color:var(--soft)] py-20 md:py-28">
+    <section id="offers" className="relative bg-[color:var(--soft)] py-10 md:py-28">
       <div className="mx-auto grid w-full max-w-7xl items-center gap-14 px-5 md:grid-cols-2 md:px-8">
         <Reveal>
           <MissionVisual locale={locale} />

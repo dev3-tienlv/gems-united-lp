@@ -17,7 +17,7 @@ export function CompanyGallery({ items, locale }: CompanyGalleryProps) {
   const hasItems = publishedItems.length > 0;
 
   return (
-    <section id="gallery" className="relative overflow-hidden bg-[color:var(--surface)] py-14 md:py-20">
+    <section id="gallery" className="relative overflow-hidden bg-[color:var(--surface)] py-7 md:py-20">
       <div
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_100%_0%,rgba(140,82,255,0.08),transparent_60%)]"
         aria-hidden="true"
@@ -47,6 +47,7 @@ export function CompanyGallery({ items, locale }: CompanyGalleryProps) {
                   sliderAriaLabel: text.sliderAriaLabel,
                   prevSlide: text.prevSlide,
                   nextSlide: text.nextSlide,
+                  goToSlide: text.goToSlide,
                   badge: text.badge,
                 }}
               />

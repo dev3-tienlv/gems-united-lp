@@ -59,7 +59,10 @@ export function Hero({ locale }: HeroProps) {
           </div>
         </Reveal>
 
-        <Reveal delay={0.1} className="relative flex items-center justify-center overflow-visible">
+        <Reveal
+          delay={0.1}
+          className="hidden md:relative md:flex md:items-center md:justify-center md:overflow-visible"
+        >
           <HeroInteractiveVisual />
         </Reveal>
       </div>

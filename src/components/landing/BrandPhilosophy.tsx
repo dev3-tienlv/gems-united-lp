@@ -10,7 +10,7 @@ export function BrandPhilosophy({ locale }: BrandPhilosophyProps) {
   const text = getMessages(locale).home.brandPhilosophy;
 
   return (
-    <section id="philosophy" className="relative overflow-hidden py-14 md:py-20">
+    <section id="philosophy" className="relative overflow-hidden py-7 md:py-20">
       <div
         className="absolute inset-0 bg-gradient-to-br from-[color:var(--philosophy-from)] via-[color:var(--philosophy-via)] to-[color:var(--philosophy-to)]"
         aria-hidden="true"

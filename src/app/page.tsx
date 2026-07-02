@@ -7,7 +7,6 @@ import { BrandPhilosophy } from "@/components/landing/BrandPhilosophy";
 import { CompanyGallery } from "@/components/landing/CompanyGallery";
 import { OurDesigns } from "@/components/landing/OurDesigns";
 import { ContactSection } from "@/components/landing/ContactSection";
-import { ScrollToTop } from "@/components/landing/ScrollToTop";
 import { SectionTitle } from "@/components/landing/SectionTitle";
 import { BlogCard, CareerCard, ValueCard } from "@/components/landing/cards";
 import { Reveal } from "@/components/motion/Reveal";
@@ -36,7 +35,7 @@ export default async function Home() {
 
         <Offers locale={locale} />
 
-        <section id="values" className="bg-[color:var(--surface)] py-20 md:py-28">
+        <section id="values" className="bg-[color:var(--surface)] py-10 md:py-28">
           <div className="mx-auto w-full max-w-7xl px-5 md:px-8">
             <Reveal>
               <SectionTitle
@@ -46,7 +45,7 @@ export default async function Home() {
                 maxWidth="4xl"
               />
             </Reveal>
-            <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-14 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
               {text.home.values.map((item, index) => (
                 <Reveal key={`${item.shortCode}-${index}`} delay={(index % 4) * 0.05}>
                   <ValueCard item={item} />
@@ -60,7 +59,7 @@ export default async function Home() {
 
         <OurDesigns items={content.designs} locale={locale} />
 
-        <section id="careers" className="bg-[color:var(--surface)] py-20 md:py-28">
+        <section id="careers" className="bg-[color:var(--surface)] py-10 md:py-28">
           <div className="mx-auto w-full max-w-7xl px-5 md:px-8">
             <Reveal>
               <SectionTitle
@@ -69,7 +68,7 @@ export default async function Home() {
                 description={text.home.careersDescription}
               />
             </Reveal>
-            <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-14 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
               {content.careers.map((career, index) => (
                 <Reveal key={`${career.id}-${index}`} delay={(index % 3) * 0.05}>
                   <CareerCard item={career} locale={locale} />
@@ -79,7 +78,7 @@ export default async function Home() {
           </div>
         </section>
 
-        <section id="insights" className="bg-[color:var(--soft)] py-20 md:py-28">
+        <section id="insights" className="bg-[color:var(--soft)] py-10 md:py-28">
           <div className="mx-auto w-full max-w-7xl px-5 md:px-8">
             <Reveal>
               <SectionTitle
@@ -98,10 +97,9 @@ export default async function Home() {
           </div>
         </section>
 
-        <ContactSection locale={locale} sectionClassName="bg-[color:var(--surface)] pb-40 pt-20 md:pb-40 md:pt-28" />
+        <ContactSection locale={locale} sectionClassName="bg-[color:var(--surface)] pb-20 pt-10 md:pb-40 md:pt-28" />
       </main>
       <Footer locale={locale} />
-      <ScrollToTop locale={locale} />
     </div>
   );
 }

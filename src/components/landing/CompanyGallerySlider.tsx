@@ -10,6 +10,7 @@ export interface CompanyGallerySliderLabels {
   sliderAriaLabel: string;
   prevSlide: string;
   nextSlide: string;
+  goToSlide: string;
   badge: string;
 }
 
@@ -19,74 +20,112 @@ interface CompanyGallerySliderProps {
   labels: CompanyGallerySliderLabels;
 }
 
+interface ScrollParallax {
+  imageTranslateY: number;
+  glowTranslateY: number;
+  frameTranslateY: number;
+}
+
+interface PointerParallax {
+  x: number;
+  y: number;
+}
+
 const SWIPE_THRESHOLD = 48;
-const VISIBLE_RANGE = 2;
-const AUTOPLAY_MS = 5500;
+const AUTOPLAY_MS = 6000;
+const DEFAULT_SCROLL_PARALLAX: ScrollParallax = {
+  imageTranslateY: 0,
+  glowTranslateY: 0,
+  frameTranslateY: 0,
+};
 
 function getDefaultSlideIndex(count: number): number {
   if (count <= 0) return 0;
   return Math.floor(count / 2);
 }
 
-function getSlideImageUrl(url: string | undefined): string | undefined {
+function getHeroImageUrl(url: string | undefined): string | undefined {
   if (!url) return undefined;
-  // 16:10 crop at 2x retina headroom; served directly from Wix CDN (no Next re-compress).
   return withWixImageDelivery(url, {
-    width: 2400,
-    height: 1500,
-    quality: 92,
+    width: 3840,
+    quality: 100,
+    mode: "fit",
+  });
+}
+
+function getThumbImageUrl(url: string | undefined): string | undefined {
+  if (!url) return undefined;
+  return withWixImageDelivery(url, {
+    width: 480,
+    height: 300,
+    quality: 90,
     mode: "fill",
   });
 }
 
-function getSlideStyle(index: number, activeIndex: number, reducedMotion: boolean): CSSProperties {
-  const base: CSSProperties = {
-    left: "50%",
-    top: "50%",
-    transformOrigin: "center center",
-    transition: reducedMotion
-      ? "opacity 0.35s ease"
-      : "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease, filter 0.45s ease",
-  };
+function useScrollParallax(
+  ref: React.RefObject<HTMLElement | null>,
+  disabled: boolean,
+): ScrollParallax {
+  const [parallax, setParallax] = useState<ScrollParallax>(DEFAULT_SCROLL_PARALLAX);
 
-  if (reducedMotion) {
-    const isActive = index === activeIndex;
-    return {
-      ...base,
-      opacity: isActive ? 1 : 0,
-      transform: "translate(-50%, -50%)",
-      zIndex: isActive ? 20 : 0,
-      pointerEvents: isActive ? "auto" : "none",
+  useEffect(() => {
+    if (disabled) return;
+
+    const update = () => {
+      const el = ref.current;
+      if (!el) return;
+
+      const rect = el.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const isVisible = rect.bottom > 0 && rect.top < viewportHeight;
+      if (!isVisible) {
+        setParallax(DEFAULT_SCROLL_PARALLAX);
+        return;
+      }
+
+      const sectionCenter = rect.top + rect.height / 2;
+      const viewportCenter = viewportHeight / 2;
+      const distanceFromCenter = (sectionCenter - viewportCenter) / viewportHeight;
+
+      setParallax({
+        imageTranslateY: distanceFromCenter * -42,
+        glowTranslateY: distanceFromCenter * 28,
+        frameTranslateY: distanceFromCenter * 14,
+      });
     };
-  }
 
-  const offset = index - activeIndex;
-  if (Math.abs(offset) > VISIBLE_RANGE) {
-    return {
-      ...base,
-      opacity: 0,
-      transform: "translate(-50%, -50%) translateX(0) translateZ(-260px) scale(0.55)",
-      zIndex: 0,
-      pointerEvents: "none",
-      filter: "blur(2px)",
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
     };
-  }
+  }, [disabled, ref]);
 
-  const rotateY = offset * -46;
-  const translateX = offset * 54;
-  const translateZ = offset === 0 ? 160 : -110 - Math.abs(offset) * 55;
-  const scale = offset === 0 ? 1 : 0.74 - Math.abs(offset) * 0.05;
-  const opacity = offset === 0 ? 1 : Math.max(0.22, 0.62 - Math.abs(offset) * 0.18);
-  const blur = offset === 0 ? 0 : Math.abs(offset) * 0.6;
+  return disabled ? DEFAULT_SCROLL_PARALLAX : parallax;
+}
 
-  return {
-    ...base,
-    transform: `translate(-50%, -50%) translateX(${translateX}%) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
-    opacity,
-    zIndex: 20 - Math.abs(offset),
-    pointerEvents: Math.abs(offset) <= 1 ? "auto" : "none",
-    filter: blur > 0 ? `blur(${blur}px)` : undefined,
-  };
+function usePointerParallax(ref: React.RefObject<HTMLElement | null>, disabled: boolean) {
+  const [offset, setOffset] = useState<PointerParallax>({ x: 0, y: 0 });
+
+  const onPointerMove = useCallback(
+    (event: React.PointerEvent<HTMLElement>) => {
+      if (disabled || !ref.current) return;
+      const bounds = ref.current.getBoundingClientRect();
+      const normalizedX = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
+      const normalizedY = ((event.clientY - bounds.top) / bounds.height) * 2 - 1;
+      setOffset({ x: normalizedX * 10, y: normalizedY * -8 });
+    },
+    [disabled, ref],
+  );
+
+  const onPointerLeave = useCallback(() => {
+    setOffset({ x: 0, y: 0 });
+  }, []);
+
+  return { offset, onPointerMove, onPointerLeave };
 }
 
 function ChevronIcon({ direction }: { direction: "left" | "right" }) {
@@ -103,25 +142,75 @@ function ChevronIcon({ direction }: { direction: "left" | "right" }) {
   );
 }
 
+interface SlideImageProps {
+  imageUrl: string | undefined;
+  title: string;
+  priority?: boolean;
+  className?: string;
+  parallaxStyle?: CSSProperties;
+}
+
+function SlideImage({ imageUrl, title, priority, className = "", parallaxStyle }: SlideImageProps) {
+  if (!imageUrl) {
+    return (
+      <div className="flex h-full min-h-[280px] w-full items-center justify-center bg-gradient-to-br from-[color:var(--brand)] via-[color:var(--brand-light)] to-[color:var(--brand-strong)]">
+        <span className="font-display text-5xl font-black text-white/90 md:text-6xl">
+          {title.charAt(0).toUpperCase()}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="absolute inset-0 will-change-transform motion-reduce:transform-none"
+      style={parallaxStyle}
+    >
+      <Image
+        src={imageUrl}
+        alt={title}
+        fill
+        unoptimized
+        priority={priority}
+        sizes="(max-width: 768px) 94vw, (max-width: 1280px) 88vw, 1400px"
+        className={`object-contain ${className}`}
+      />
+    </div>
+  );
+}
+
 export function CompanyGallerySlider({ items, labels }: CompanyGallerySliderProps) {
   const text = labels;
   const defaultIndex = getDefaultSlideIndex(items.length);
   const [activeIndex, setActiveIndex] = useState(defaultIndex);
-  const [mounted, setMounted] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-  const [stageTilt, setStageTilt] = useState({ x: 0, y: 0 });
+  const [progressCycle, setProgressCycle] = useState(0);
   const touchStartX = useRef<number | null>(null);
-  const boothRef = useRef<HTMLDivElement | null>(null);
   const regionRef = useRef<HTMLDivElement | null>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+
+  const motionDisabled = prefersReducedMotion;
+  const scrollParallax = useScrollParallax(stageRef, motionDisabled);
+  const {
+    offset: pointerParallax,
+    onPointerMove,
+    onPointerLeave,
+  } = usePointerParallax(viewportRef, motionDisabled);
 
   const slideCount = items.length;
   const activeItem = items[activeIndex];
-  const enable3D = mounted && !prefersReducedMotion;
+  const prevIndex = slideCount > 0 ? (activeIndex - 1 + slideCount) % slideCount : 0;
+  const nextIndex = slideCount > 0 ? (activeIndex + 1) % slideCount : 0;
+  const showAutoplayProgress = slideCount > 1 && !isPaused && !prefersReducedMotion;
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const activeImageParallax: CSSProperties = motionDisabled
+    ? {}
+    : {
+        transform: `translate3d(${pointerParallax.x}px, ${scrollParallax.imageTranslateY + pointerParallax.y}px, 0)`,
+        transition: "transform 0.12s ease-out",
+      };
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -136,6 +225,7 @@ export function CompanyGallerySlider({ items, labels }: CompanyGallerySliderProp
       if (slideCount === 0) return;
       const next = ((index % slideCount) + slideCount) % slideCount;
       setActiveIndex(next);
+      setProgressCycle((cycle) => cycle + 1);
     },
     [slideCount],
   );
@@ -144,20 +234,10 @@ export function CompanyGallerySlider({ items, labels }: CompanyGallerySliderProp
   const goPrev = useCallback(() => goTo(activeIndex - 1), [activeIndex, goTo]);
 
   useEffect(() => {
-    if (!mounted || slideCount <= 1 || isPaused || prefersReducedMotion) return;
+    if (slideCount <= 1 || isPaused || prefersReducedMotion) return;
     const timer = window.setInterval(goNext, AUTOPLAY_MS);
     return () => window.clearInterval(timer);
-  }, [goNext, isPaused, mounted, prefersReducedMotion, slideCount]);
-
-  const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!enable3D || !boothRef.current) return;
-    const bounds = boothRef.current.getBoundingClientRect();
-    const normalizedX = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
-    const normalizedY = ((event.clientY - bounds.top) / bounds.height) * 2 - 1;
-    setStageTilt({ x: normalizedX * 5, y: normalizedY * -4 });
-  };
-
-  const onPointerLeave = () => setStageTilt({ x: 0, y: 0 });
+  }, [goNext, isPaused, prefersReducedMotion, slideCount]);
 
   const onTouchStart = (event: React.TouchEvent) => {
     touchStartX.current = event.touches[0]?.clientX ?? null;
@@ -190,10 +270,6 @@ export function CompanyGallerySlider({ items, labels }: CompanyGallerySliderProp
 
   if (!activeItem) return null;
 
-  const stageTiltTransform = enable3D
-    ? `rotateX(${stageTilt.y}deg) rotateY(${stageTilt.x}deg)`
-    : undefined;
-
   return (
     <div
       ref={regionRef}
@@ -212,130 +288,213 @@ export function CompanyGallerySlider({ items, labels }: CompanyGallerySliderProp
       tabIndex={0}
     >
       <div
-        ref={boothRef}
-        className="projector-booth relative overflow-hidden rounded-[32px] border border-[color:var(--brand)]/30 shadow-[0_28px_60px_-20px_rgba(25,12,52,0.45),0_12px_28px_-14px_rgba(111,66,201,0.25)]"
-        onPointerMove={onPointerMove}
-        onPointerLeave={onPointerLeave}
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}
+        className="gallery-frame relative overflow-hidden rounded-[36px] p-[1px]"
+        style={
+          motionDisabled
+            ? undefined
+            : { transform: `translate3d(0, ${scrollParallax.frameTranslateY}px, 0)` }
+        }
       >
         <div
-          className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#2a1a4a] via-[#150f28] to-[#0a0618]"
-          aria-hidden="true"
-        />
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.07] [background-image:radial-gradient(rgba(255,255,255,0.9)_0.6px,transparent_0.6px)] [background-size:3px_3px]"
-          aria-hidden="true"
-        />
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-[62%] bg-[radial-gradient(ellipse_70%_55%_at_50%_0%,rgba(140,82,255,0.42),rgba(126,217,87,0.08)_38%,transparent_72%)]"
-          aria-hidden="true"
-        />
-        <div
-          className="pointer-events-none absolute left-1/2 top-0 h-full w-[min(72vw,560px)] -translate-x-1/2 bg-[conic-gradient(from_180deg_at_50%_0%,transparent_125deg,rgba(255,255,255,0.07)_180deg,transparent_235deg)]"
-          aria-hidden="true"
-        />
-        <div
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_42%,rgba(0,0,0,0.55)_100%)]"
+          className="pointer-events-none absolute inset-0 rounded-[36px] bg-[conic-gradient(from_180deg_at_50%_50%,rgba(140,82,255,0.55),rgba(126,217,87,0.35),rgba(140,82,255,0.15),rgba(126,217,87,0.45),rgba(140,82,255,0.55))] opacity-80 motion-safe:animate-[gallery-border-spin_14s_linear_infinite]"
           aria-hidden="true"
         />
 
-        <div className="relative z-10 px-3 pt-3 md:px-6 md:pt-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.2em] text-white/85 backdrop-blur-sm md:px-3 md:py-1 md:text-[10px]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--accent)] shadow-[0_0_8px_rgba(126,217,87,0.8)]" />
-            {text.badge}
-          </div>
-        </div>
-
-        <div className="relative z-10 mx-auto w-full max-w-6xl px-3 pb-5 md:px-8 md:pb-6">
-          <div className="relative h-[clamp(320px,52vh,480px)] w-full [perspective:1400px] [perspective-origin:50%_46%] md:h-[clamp(360px,56vh,520px)]">
+        <div
+          ref={stageRef}
+          className="gallery-stage relative overflow-hidden rounded-[35px] bg-[#0d0818] shadow-[0_32px_80px_-28px_rgba(18,8,40,0.72)]"
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+          onPointerMove={onPointerMove}
+          onPointerLeave={onPointerLeave}
+        >
           <div
-            className="absolute inset-0 transition-transform duration-500 ease-out motion-reduce:transition-none [transform-style:preserve-3d]"
-            style={{ transform: stageTiltTransform }}
+            className="pointer-events-none absolute inset-0 will-change-transform motion-reduce:transform-none"
+            style={
+              motionDisabled
+                ? undefined
+                : { transform: `translate3d(0, ${scrollParallax.glowTranslateY}px, 0)` }
+            }
+            aria-hidden="true"
           >
-            {items.map((item, index) => {
-              const imageUrl = getSlideImageUrl(item.imageUrl);
-              const isActive = index === activeIndex;
-              const offset = index - activeIndex;
-              const slideStyle = getSlideStyle(index, activeIndex, !enable3D);
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,rgba(140,82,255,0.28),transparent_68%)]" />
+            <div className="absolute inset-0 opacity-[0.035] [background-image:radial-gradient(rgba(255,255,255,0.95)_0.5px,transparent_0.5px)] [background-size:4px_4px]" />
+          </div>
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(to_top,rgba(0,0,0,0.55),transparent)]"
+            aria-hidden="true"
+          />
 
-              return (
-                <article
-                  key={item.id}
-                  aria-hidden={!isActive}
-                  aria-current={isActive ? "true" : undefined}
-                  className={[
-                    "absolute w-[min(92vw,640px)] cursor-pointer md:w-[min(84vw,720px)]",
-                    !isActive && Math.abs(offset) === 1 ? "hover:opacity-90" : "",
-                  ].join(" ")}
-                  style={slideStyle}
-                  onClick={() => {
-                    if (!isActive) goTo(index);
-                  }}
-                >
-                  <div className="relative w-full overflow-hidden rounded-2xl border border-white/20 bg-[#0c0820] shadow-[0_30px_60px_-20px_rgba(0,0,0,0.75),inset_0_0_0_1px_rgba(255,255,255,0.08)]">
-                    <div className="relative w-full pb-[62.5%]">
-                      {imageUrl ? (
-                        <Image
-                          src={imageUrl}
-                          alt={item.title}
-                          fill
-                          unoptimized
-                          priority={index === defaultIndex}
-                          sizes="(max-width: 768px) 92vw, (max-width: 1280px) 84vw, 1280px"
-                          className={`object-cover ${isActive && enable3D ? "design-hero-img" : ""}`}
-                        />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[color:var(--brand)] via-[color:var(--brand-light)] to-[color:var(--brand-strong)]">
-                          <span className="font-display text-5xl font-black text-white/90 md:text-6xl">
-                            {item.title.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                      )}
-
-                      <div
-                        aria-hidden="true"
-                        className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.12)_0%,transparent_28%,transparent_72%,rgba(0,0,0,0.18)_100%)]"
-                      />
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
+          <div className="relative z-10 flex items-center justify-start gap-4 px-4 pt-4 md:px-7 md:pt-5">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.06] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-white/88 backdrop-blur-sm">
+              <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--accent)] shadow-[0_0_10px_rgba(126,217,87,0.85)]" />
+              {text.badge}
+            </div>
           </div>
 
           {slideCount > 1 ? (
-            <>
-              <button
-                type="button"
-                onClick={goPrev}
-                aria-label={text.prevSlide}
-                className="absolute left-0 top-1/2 z-30 inline-flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-white/10 text-white shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:border-[color:var(--brand-light)] hover:bg-[color:var(--brand)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand-light)] md:h-10 md:w-10"
-              >
-                <ChevronIcon direction="left" />
-              </button>
-              <button
-                type="button"
-                onClick={goNext}
-                aria-label={text.nextSlide}
-                className="absolute right-0 top-1/2 z-30 inline-flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-white/10 text-white shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:border-[color:var(--brand-light)] hover:bg-[color:var(--brand)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand-light)] md:h-10 md:w-10"
-              >
-                <ChevronIcon direction="right" />
-              </button>
-            </>
+            <div className="relative z-10 mx-4 mt-3 h-[2px] overflow-hidden rounded-full bg-white/10 md:mx-7">
+              <div
+                key={progressCycle}
+                className={[
+                  "h-full origin-left rounded-full bg-gradient-to-r from-[color:var(--accent)] via-[#b388ff] to-[color:var(--brand-light)]",
+                  showAutoplayProgress ? "gallery-progress-bar" : "w-0",
+                ].join(" ")}
+                style={showAutoplayProgress ? { animationDuration: `${AUTOPLAY_MS}ms` } : undefined}
+                aria-hidden="true"
+              />
+            </div>
           ) : null}
 
+          <div className="relative z-10 px-2 py-5 md:px-6 md:py-8">
             <div
-              className="pointer-events-none absolute -bottom-3 left-1/2 z-20 flex h-9 w-24 -translate-x-1/2 items-end justify-center md:-bottom-4 md:h-10 md:w-28"
-              aria-hidden="true"
+              ref={viewportRef}
+              className="relative mx-auto flex h-[min(52vh,520px)] w-full max-w-6xl items-center justify-center md:h-[min(68vh,760px)]"
             >
-              <div className="absolute bottom-0 h-2 w-full rounded-full bg-gradient-to-b from-[#3d2a66] to-[#1a1230]" />
-              <div className="absolute bottom-1 h-5 w-5 rounded-full bg-gradient-to-br from-[color:var(--accent)] via-[#b388ff] to-[color:var(--brand)] shadow-[0_0_18px_rgba(126,217,87,0.5),0_0_32px_rgba(140,82,255,0.3)] md:h-6 md:w-6" />
+              {slideCount > 1 ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => goTo(prevIndex)}
+                    aria-label={text.prevSlide}
+                    className="group/peek absolute left-0 z-10 hidden h-[72%] w-[14%] cursor-pointer overflow-hidden rounded-xl border border-white/8 bg-black/25 opacity-0 transition duration-500 hover:border-white/20 hover:opacity-100 md:block lg:left-2 lg:w-[12%] lg:opacity-35 lg:hover:opacity-80"
+                  >
+                    <SlideImage
+                      imageUrl={getHeroImageUrl(items[prevIndex]?.imageUrl)}
+                      title={items[prevIndex]?.title ?? ""}
+                      className="opacity-80 transition group-hover/peek:opacity-100"
+                    />
+                    <span className="pointer-events-none absolute inset-0 bg-black/45" aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => goTo(nextIndex)}
+                    aria-label={text.nextSlide}
+                    className="group/peek absolute right-0 z-10 hidden h-[72%] w-[14%] cursor-pointer overflow-hidden rounded-xl border border-white/8 bg-black/25 opacity-0 transition duration-500 hover:border-white/20 hover:opacity-100 md:block lg:right-2 lg:w-[12%] lg:opacity-35 lg:hover:opacity-80"
+                  >
+                    <SlideImage
+                      imageUrl={getHeroImageUrl(items[nextIndex]?.imageUrl)}
+                      title={items[nextIndex]?.title ?? ""}
+                      className="opacity-80 transition group-hover/peek:opacity-100"
+                    />
+                    <span className="pointer-events-none absolute inset-0 bg-black/45" aria-hidden="true" />
+                  </button>
+                </>
+              ) : null}
+
+              <div className="relative z-20 h-full w-full max-w-5xl px-1 md:px-10">
+                {items.map((item, index) => {
+                  const imageUrl = getHeroImageUrl(item.imageUrl);
+                  const isActive = index === activeIndex;
+
+                  return (
+                    <article
+                      key={item.id}
+                      aria-hidden={!isActive}
+                      aria-current={isActive ? "true" : undefined}
+                      className={[
+                        "absolute inset-0 flex items-center justify-center",
+                        prefersReducedMotion
+                          ? isActive
+                            ? "z-20 opacity-100"
+                            : "pointer-events-none z-0 opacity-0"
+                          : isActive
+                            ? "gallery-slide-enter z-20 opacity-100"
+                            : "pointer-events-none z-0 opacity-0 transition-opacity duration-700 ease-out",
+                      ].join(" ")}
+                    >
+                      <div className="relative h-full w-full overflow-hidden rounded-2xl border border-white/12 bg-[#120a24]/80 shadow-[0_0_0_1px_rgba(255,255,255,0.04)_inset,0_40px_80px_-36px_rgba(0,0,0,0.85)] ring-1 ring-[color:var(--brand)]/20">
+                        <div
+                          className="pointer-events-none absolute -inset-8 bg-[radial-gradient(ellipse_at_center,rgba(140,82,255,0.22),transparent_70%)]"
+                          aria-hidden="true"
+                        />
+                        <SlideImage
+                          imageUrl={imageUrl}
+                          title={item.title}
+                          priority={index === defaultIndex}
+                          parallaxStyle={isActive ? activeImageParallax : undefined}
+                        />
+                      </div>
+                    </article>
+                  );
+                })}
+
+                {slideCount > 1 ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={goPrev}
+                      aria-label={text.prevSlide}
+                      className="absolute left-1 top-1/2 z-30 inline-flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/18 bg-black/45 text-white shadow-[0_12px_28px_rgba(0,0,0,0.45)] backdrop-blur-md transition hover:border-[color:var(--brand-light)] hover:bg-[color:var(--brand)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand-light)] md:-left-1 md:h-11 md:w-11"
+                    >
+                      <ChevronIcon direction="left" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={goNext}
+                      aria-label={text.nextSlide}
+                      className="absolute right-1 top-1/2 z-30 inline-flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/18 bg-black/45 text-white shadow-[0_12px_28px_rgba(0,0,0,0.45)] backdrop-blur-md transition hover:border-[color:var(--brand-light)] hover:bg-[color:var(--brand)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand-light)] md:-right-1 md:h-11 md:w-11"
+                    >
+                      <ChevronIcon direction="right" />
+                    </button>
+                  </>
+                ) : null}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="h-5 md:h-6" aria-hidden="true" />
+          {slideCount > 1 ? (
+            <div className="relative z-10 border-t border-white/8 bg-black/20 px-3 py-3 md:px-7 md:py-5">
+              <div className="mx-auto flex max-w-6xl items-center justify-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:thin] md:gap-2">
+                {items.map((item, index) => {
+                  const thumbUrl = getThumbImageUrl(item.imageUrl);
+                  const isActive = index === activeIndex;
+                  return (
+                    <button
+                      key={`${item.id}-thumb`}
+                      type="button"
+                      onClick={() => goTo(index)}
+                      aria-label={`${text.goToSlide} ${index + 1}`}
+                      aria-current={isActive ? "true" : undefined}
+                      className={[
+                        "group/thumb relative h-12 w-16 shrink-0 cursor-pointer overflow-hidden rounded-lg border transition duration-300 md:h-16 md:w-24",
+                        isActive
+                          ? "border-[color:var(--brand-light)] shadow-[0_0_24px_rgba(140,82,255,0.35)] ring-2 ring-[color:var(--brand-light)]/50"
+                          : "border-white/15 opacity-70 hover:border-white/35 hover:opacity-100",
+                      ].join(" ")}
+                    >
+                      {thumbUrl ? (
+                        <Image
+                          src={thumbUrl}
+                          alt={item.title}
+                          fill
+                          unoptimized
+                          sizes="96px"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 bg-[color:var(--brand)]/65" />
+                      )}
+                      <span
+                        className={[
+                          "absolute inset-0 transition duration-300",
+                          isActive ? "bg-transparent" : "bg-black/35 group-hover/thumb:bg-black/15",
+                        ].join(" ")}
+                        aria-hidden="true"
+                      />
+                      {isActive ? (
+                        <span
+                          className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-[color:var(--accent)]"
+                          aria-hidden="true"
+                        />
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+        </div>
       </div>
     </div>
   );

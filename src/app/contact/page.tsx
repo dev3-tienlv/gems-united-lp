@@ -22,7 +22,7 @@ export default async function ContactPage() {
     <div className="bg-[color:var(--bg)]">
       <Header locale={locale} initialSolid />
       <main id="main-content">
-        <ContactSection locale={locale} sectionClassName="bg-[color:var(--surface)] pb-40 pt-20 md:pb-40 md:pt-28" />
+        <ContactSection locale={locale} sectionClassName="bg-[color:var(--surface)] pb-20 pt-10 md:pb-40 md:pt-28" />
       </main>
       <Footer locale={locale} showTopBanner={false} />
     </div>
