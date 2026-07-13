@@ -33,6 +33,26 @@ npm run dev
 
 `GET /api/headless-status`
 
+### CMS updates (Careers / Blogs)
+
+Content is cached for performance. After HR edits a job or blog in Wix CMS:
+
+1. **Recommended:** call on-demand revalidation (instant, no double reload):
+
+```bash
+curl -X POST "https://YOUR_DOMAIN/api/revalidate?secret=YOUR_REVALIDATE_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{"tags":["wix-careers"]}'
+```
+
+Tags: `wix-careers`, `wix-blogs`, `wix-designs`, or `{"all":true}` for everything.
+
+2. Set `REVALIDATE_SECRET` in Vercel + `.env.local`. Optionally wire a Wix automation/webhook to this URL when a collection item is saved.
+
+3. **Fallback:** `WIX_REVALIDATE_SECONDS` (default `60` in production) refreshes stale data automatically without a webhook.
+
+In **local dev**, Wix fetches are not cached (`revalidate = 0`) so edits appear on a normal refresh.
+
 ## Notes
 
 - Keep API key server-only (never expose to client components)
