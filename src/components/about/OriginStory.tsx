@@ -11,7 +11,7 @@ interface OriginStoryProps {
 export function OriginStory({ locale }: OriginStoryProps) {
   const text = getMessages(locale).about.origin;
   return (
-    <section className="py-20 md:py-24">
+    <section className="py-12 md:py-14">
       <div className="mx-auto grid w-full max-w-7xl gap-10 px-5 md:grid-cols-[1.15fr_1fr] md:items-center md:px-8">
         <Reveal>
           <SectionTitle eyebrow={text.eyebrow} title={text.title} align="left" />

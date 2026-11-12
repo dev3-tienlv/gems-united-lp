@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Reveal } from "@/components/motion/Reveal";
 import { CompanyGallerySlider } from "@/components/landing/CompanyGallerySlider";
 import { SectionTitle } from "@/components/landing/SectionTitle";
+import { WinterOrnament } from "@/components/xmas/WinterPageDecor";
 import { getMessages } from "@/i18n/messages";
 import type { Locale } from "@/i18n/types";
 import type { CompanyImageItem } from "@/types/landing";
@@ -17,7 +18,12 @@ export function CompanyGallery({ items, locale }: CompanyGalleryProps) {
   const hasItems = publishedItems.length > 0;
 
   return (
-    <section id="gallery" className="relative overflow-hidden bg-[color:var(--surface)] py-7 md:py-20">
+    <section id="gallery" className="relative overflow-hidden bg-[color:var(--surface)] py-5 md:py-10">
+      <WinterOrnament
+        name="fairy-lights-pine"
+        placement="home-gallery-lights"
+        sizes="330px"
+      />
       <div
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_100%_0%,rgba(140,82,255,0.08),transparent_60%)]"
         aria-hidden="true"
@@ -37,21 +43,29 @@ export function CompanyGallery({ items, locale }: CompanyGalleryProps) {
           />
         </Reveal>
 
-        <div className="mt-10 md:mt-12">
+        <div className="relative mt-10 md:mt-12">
           {hasItems ? (
-            <Reveal delay={0.08}>
-              <CompanyGallerySlider
-                items={publishedItems}
-                locale={locale}
-                labels={{
-                  sliderAriaLabel: text.sliderAriaLabel,
-                  prevSlide: text.prevSlide,
-                  nextSlide: text.nextSlide,
-                  goToSlide: text.goToSlide,
-                  badge: text.badge,
-                }}
+            <>
+              <WinterOrnament
+                name="snow-corner-red-bow"
+                motion="still"
+                placement="home-gallery-snow"
+                sizes="(max-width: 767px) 270px, 520px"
               />
-            </Reveal>
+              <Reveal delay={0.08} className="relative z-10">
+                <CompanyGallerySlider
+                  items={publishedItems}
+                  locale={locale}
+                  labels={{
+                    sliderAriaLabel: text.sliderAriaLabel,
+                    prevSlide: text.prevSlide,
+                    nextSlide: text.nextSlide,
+                    goToSlide: text.goToSlide,
+                    badge: text.badge,
+                  }}
+                />
+              </Reveal>
+            </>
           ) : (
             <Reveal delay={0.08}>
               <div className="rounded-3xl border border-dashed border-[color:var(--line)] bg-[color:var(--soft)] px-6 py-14 text-center md:px-10">

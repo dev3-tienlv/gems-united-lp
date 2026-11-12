@@ -7,11 +7,11 @@ import { CareerCard } from "@/components/landing/cards";
 import { Header } from "@/components/landing/Header";
 import { Reveal } from "@/components/motion/Reveal";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { WinterPageShell } from "@/components/xmas/WinterPageDecor";
 import { CONTACT_EMAIL, CONTACT_MAILTO } from "@/lib/constants";
 import { jobPostingJsonLd } from "@/lib/seo";
 import { getLocale } from "@/i18n/locale";
 import { getMessages } from "@/i18n/messages";
-import type { Locale } from "@/i18n/types";
 import { resolveCareerFields } from "@/lib/career-locale";
 import { formatEmploymentType } from "@/lib/employment-type";
 import { getAllCareers, getCareerBySlug } from "@/lib/wix-headless";
@@ -215,14 +215,13 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
   });
 
   return (
-    <div className="bg-gradient-to-br from-[color:var(--hero-from)] via-[color:var(--hero-via)] to-[color:var(--hero-to)]">
+    <WinterPageShell>
       <Header locale={locale} />
       <main id="main-content">
         <JsonLd data={jobPostingJsonLd(career, locale)} />
-        <section className="relative overflow-hidden bg-gradient-to-br from-[color:var(--hero-from)] via-[color:var(--hero-via)] to-[color:var(--hero-to)]">
+        <section className="winter-transparent-section relative overflow-hidden">
           <div className="pointer-events-none absolute -right-32 -top-32 h-[520px] w-[520px] rounded-full bg-[color:var(--brand)]/15 blur-3xl" />
           <div className="pointer-events-none absolute -left-24 top-40 h-[360px] w-[360px] rounded-full bg-[color:var(--brand-light)]/15 blur-3xl" />
-
           <div className="relative mx-auto grid w-full max-w-7xl gap-12 px-5 pb-20 pt-16 md:grid-cols-[1fr_1fr] md:px-8 md:pb-24 md:pt-24">
             <Reveal>
               <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
@@ -313,7 +312,7 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
           </div>
         </section>
 
-        <section className="bg-[color:var(--surface)] pb-20 pt-20 md:pb-24 md:pt-24">
+        <section className="winter-transparent-section pb-20 pt-20 md:pb-24 md:pt-24">
           <div className="mx-auto w-full max-w-7xl px-5 md:px-8">
             <Reveal>
               <p className="text-[12px] font-bold uppercase tracking-[0.22em] text-[color:var(--brand)]">
@@ -481,7 +480,7 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
         </section>
 
         {relatedCareers.length > 0 ? (
-          <section className="bg-[color:var(--surface)] pb-32 md:pb-40">
+          <section className="winter-transparent-section pb-32 md:pb-40">
             <div className="mx-auto w-full max-w-7xl px-5 md:px-8">
               <Reveal>
                 <div className="flex items-end justify-between gap-4">
@@ -524,6 +523,6 @@ export default async function CareerDetailPage({ params }: CareerDetailPageProps
         ) : null}
       </main>
       <Footer locale={locale} />
-    </div>
+    </WinterPageShell>
   );
 }

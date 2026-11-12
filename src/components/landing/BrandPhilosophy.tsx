@@ -10,20 +10,7 @@ export function BrandPhilosophy({ locale }: BrandPhilosophyProps) {
   const text = getMessages(locale).home.brandPhilosophy;
 
   return (
-    <section id="philosophy" className="relative overflow-hidden py-7 md:py-20">
-      <div
-        className="absolute inset-0 bg-gradient-to-br from-[color:var(--philosophy-from)] via-[color:var(--philosophy-via)] to-[color:var(--philosophy-to)]"
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_85%_55%_at_50%_-10%,rgba(140,82,255,0.14),transparent_55%)]"
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.55] [background-image:linear-gradient(rgba(111,66,201,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(111,66,201,0.06)_1px,transparent_1px)] [background-size:26px_26px]"
-        aria-hidden="true"
-      />
-
+    <section id="philosophy" className="relative overflow-hidden py-7 md:py-12">
       <div className="relative mx-auto w-full max-w-7xl px-5 md:px-8">
         <Reveal>
           <header className="mx-auto max-w-2xl text-center">

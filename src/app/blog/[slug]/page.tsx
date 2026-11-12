@@ -11,6 +11,7 @@ import { Footer } from "@/components/landing/Footer";
 import { Header } from "@/components/landing/Header";
 import { Reveal } from "@/components/motion/Reveal";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { WinterPageShell } from "@/components/xmas/WinterPageDecor";
 import { getLocale } from "@/i18n/locale";
 import { getMessages } from "@/i18n/messages";
 import type { Locale } from "@/i18n/types";
@@ -146,12 +147,12 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
   const showContactSection = Boolean(contact.website || contact.fanpage || contact.email || contact.address);
 
   return (
-    <div className="bg-[color:var(--bg)]">
+    <WinterPageShell>
       <Header locale={locale} />
       <BlogReadingProgress />
       <main id="main-content" className="pb-[calc(var(--spacing)*12)]">
         <JsonLd data={blogPostingJsonLd(blog, locale)} />
-        <section className="relative overflow-hidden bg-gradient-to-br from-[color:var(--hero-from)] via-[color:var(--hero-via)] to-[color:var(--hero-to)]">
+        <section className="winter-transparent-section relative overflow-hidden">
           <div className="pointer-events-none absolute -right-32 -top-32 h-[520px] w-[520px] rounded-full bg-[color:var(--brand)]/15 blur-3xl" />
           <div className="pointer-events-none absolute -left-24 top-40 h-[360px] w-[360px] rounded-full bg-[color:var(--brand-light)]/15 blur-3xl" />
           <div className="relative mx-auto w-full max-w-7xl px-5 pb-16 pt-16 md:px-8 md:pb-20 md:pt-24">
@@ -183,7 +184,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
           </div>
         </section>
 
-        <section className="bg-[color:var(--surface)] pb-12 md:pb-14">
+        <section className="winter-transparent-section pb-12 md:pb-14">
           <div className="mx-auto w-full max-w-7xl px-5 md:px-8">
             <Reveal>
               <div className="relative z-10 -mt-10 overflow-hidden rounded-3xl bg-[color:var(--soft)] shadow-[0_18px_48px_rgba(10,8,24,0.12)] md:-mt-12">
@@ -219,7 +220,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
           </div>
         </section>
 
-        <section className="bg-[color:var(--surface)] pb-24 md:pb-28">
+        <section className="winter-transparent-section pb-24 md:pb-28">
           <div className="mx-auto w-full max-w-7xl px-5 md:px-8">
             <Reveal delay={0.04}>
               {isHtml ? (
@@ -317,6 +318,6 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
       </main>
       <BlogLightbox />
       <Footer locale={locale} />
-    </div>
+    </WinterPageShell>
   );
 }

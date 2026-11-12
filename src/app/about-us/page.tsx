@@ -14,6 +14,7 @@ import { MetricsBand } from "@/components/landing/MetricsBand";
 import { SectionTitle } from "@/components/landing/SectionTitle";
 import { ValueCard } from "@/components/landing/cards";
 import { Reveal } from "@/components/motion/Reveal";
+import { WinterPageShell } from "@/components/xmas/WinterPageDecor";
 import { getLocale } from "@/i18n/locale";
 import { getMessages } from "@/i18n/messages";
 
@@ -36,7 +37,7 @@ export default async function AboutUsPage() {
   const locale = await getLocale();
   const text = getMessages(locale);
   return (
-    <div className="bg-gradient-to-br from-[color:var(--about-hero-from)] via-[color:var(--hero-via)] to-[color:var(--about-hero-to)]">
+    <WinterPageShell className="winter-page--footer-flush winter-page--transparent-sections">
       <Header locale={locale} />
       <main id="main-content">
         <AboutHero locale={locale} />
@@ -44,7 +45,7 @@ export default async function AboutUsPage() {
         <OriginStory locale={locale} />
         <CapabilityPillars locale={locale} />
         <PodPipeline locale={locale} />
-        <section className="py-20 md:py-24">
+        <section className="py-14 md:py-16">
           <div className="mx-auto w-full max-w-7xl px-5 md:px-8">
             <Reveal>
               <SectionTitle
@@ -68,6 +69,6 @@ export default async function AboutUsPage() {
         <DualCta locale={locale} />
       </main>
       <Footer locale={locale} showTopBanner={false} />
-    </div>
+    </WinterPageShell>
   );
 }

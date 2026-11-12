@@ -1,70 +1,56 @@
-# Global Blizzard Snow Effect Design
+# Global Snowfall Effect Design
 
 ## Goal
 
-Add a dense, premium blizzard effect across the entire website, including the landing page and every page reachable from the primary navigation. The effect must remain decorative, preserve readability and interaction, and perform well on desktop and mobile.
+Add a subtle, natural Christmas snowfall across the entire website, matching the motion language used by the AlmaGems Christmas landing page while preserving navigation, readability, accessibility, and performance.
 
-## Approach
+## Reference
 
-Use one fixed Canvas 2D overlay mounted from the root layout. A single canvas is preferable to hundreds of animated DOM nodes for a dense storm, while avoiding the complexity and maintenance cost of WebGL.
+The source implementation in `/Users/tienlv/WorkSpace/amagems` uses:
 
-The overlay will:
+- `assets/page-christmas-landing.js` to create randomized snowflake elements;
+- `assets/page-christmas-landing.css` for fall and sway animations;
+- 85 flakes on desktop and 40 flakes on mobile;
+- circular white flakes sized from 1px to 4px;
+- randomized opacity, blur, duration, delay, horizontal drift, and rotation;
+- no snowfall when `prefers-reduced-motion: reduce` is active.
 
-- cover the viewport and remain active across client-side navigation;
-- use `pointer-events: none` and `aria-hidden="true"`;
-- sit above page content but below the sticky header, drawers, chat widget, scroll-to-top control, and skip link;
-- avoid adding a third-party animation dependency.
+## Architecture
 
-## Visual Behavior
+Mount one focused Client Component from the root layout so the snowfall persists through client-side navigation. The component creates snowflake spans in a document fragment and lets CSS animations handle all per-frame movement. No Canvas loop or third-party animation dependency is required.
 
-The storm uses three depth layers:
+The fixed snowfall layer uses `pointer-events: none`, is excluded from the accessibility tree, and remains below the sticky header, drawers, chat widget, scroll-to-top control, and skip link.
 
-- distant flakes: small, slow, and faint;
-- middle flakes: medium size and speed;
-- foreground flakes: larger, brighter, faster, and slightly stretched by wind.
+## Motion
 
-Desktop uses approximately 220-280 particles. Mobile uses approximately 100-140 particles. Horizontal wind changes gradually over time, with occasional stronger gusts. Particles wrap around viewport edges to keep the storm continuous without allocation churn.
+Each snowflake receives randomized values within the same ranges as AlmaGems:
 
-Opacity, size, blur, and speed vary per particle. Snow remains visually dense without creating a solid white veil over text and controls.
+- horizontal position: `0-100vw`;
+- size: `1-4px`;
+- opacity: `0.45-0.95`;
+- blur: `0-0.7px`;
+- fall duration: `11-22s`;
+- sway duration: `3-7s`;
+- fall delay: `-22-0s`;
+- sway delay: `-7-0s`;
+- horizontal drift: `-45-45px`;
+- rotation: `-120-120deg`.
 
-## Runtime Design
+The fall animation moves flakes from `-5vh` to `110vh`. A separate alternating sway animation shifts them gently from side to side.
 
-The client component owns the canvas, particle array, animation frame, resize handling, and visibility handling.
+## Responsive And Accessibility
 
-- Animate with `requestAnimationFrame` and elapsed time rather than frame-count movement.
-- Cap device pixel ratio to prevent excessive canvas memory and fill cost.
-- Recalculate canvas dimensions and particle targets on resize.
-- Pause animation while the document is hidden and resume without a large time jump.
-- Reuse particle objects rather than creating new objects every frame.
-- Preserve the canvas across route transitions by mounting it once in `src/app/layout.tsx`.
-
-## Accessibility
-
-When `prefers-reduced-motion: reduce` is active, do not run the animation loop. Render a sparse static snow frame instead. The canvas is decorative and excluded from the accessibility tree.
-
-## Layering
-
-The snow overlay will use a global fixed layer below the existing interactive floating UI:
-
-- snow: below `z-48`;
-- scroll-to-top: `z-48`;
-- header and chat: `z-50`;
-- skip link: `z-100`.
-
-This keeps snowfall visible over page sections while all navigation and floating controls remain clear and clickable.
+- Desktop renders 85 flakes.
+- Viewports below 750px render 40 flakes.
+- Crossing the breakpoint on resize rebuilds the snowflake set.
+- Reduced-motion renders no snowflakes and hides the overlay.
+- Changing reduced-motion preferences updates the effect without reloading.
 
 ## Verification
 
-- Verify landing, About, Blogs, Careers, and Contact routes.
-- Check desktop widths at 1024px and 1440px.
-- Check mobile widths at 375px and 500px.
-- Confirm navigation, forms, chat, and floating buttons remain clickable.
-- Confirm no horizontal scrolling or layout shift.
-- Confirm reduced-motion disables continuous animation.
-- Run ESLint, TypeScript, production build, and local browser screenshots.
-
-## References
-
-- https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame
-- https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Optimizing_canvas
-- https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion
+- Verify `/`, `/about-us`, `/blogs`, `/careers`, and `/contact`.
+- Confirm 85 desktop flakes and 40 mobile flakes.
+- Confirm reduced-motion produces zero flakes.
+- Confirm the snowfall container persists across client-side navigation.
+- Confirm links, forms, menus, chat, and floating buttons remain clickable.
+- Run ESLint, TypeScript, production build, and route-budget checks.

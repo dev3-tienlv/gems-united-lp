@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { DeferredGlobalEffects } from "@/components/analytics/DeferredGlobalEffects";
 import { WebVitalsReporter } from "@/components/analytics/WebVitalsReporter";
+import { GlobalSnowfall } from "@/components/effects/GlobalSnowfall";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { ORG_DESCRIPTION, ORG_NAME, SITE_URL } from "@/lib/constants";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/seo";
@@ -78,6 +79,7 @@ export default async function RootLayout({
         >
           Skip to content
         </a>
+        <GlobalSnowfall />
         {children}
         <ScrollToTop locale={locale} />
         <WebVitalsReporter />

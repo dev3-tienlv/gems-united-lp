@@ -11,7 +11,7 @@ interface GemsterCultureProps {
 export function GemsterCulture({ locale }: GemsterCultureProps) {
   const text = getMessages(locale).about.culture;
   return (
-    <section className="bg-[color:var(--soft)] py-20 md:py-24">
+    <section className="bg-[color:var(--soft)] py-12 md:py-14">
       <div className="mx-auto w-full max-w-7xl px-5 md:px-8">
         <Reveal>
           <SectionTitle

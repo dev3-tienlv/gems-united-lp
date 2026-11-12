@@ -10,7 +10,7 @@ interface PodPipelineProps {
 export function PodPipeline({ locale }: PodPipelineProps) {
   const text = getMessages(locale).about.pipeline;
   return (
-    <section className="py-20 md:py-24">
+    <section className="py-12 md:py-14">
       <div className="mx-auto w-full max-w-7xl px-5 md:px-8">
         <Reveal>
           <SectionTitle
