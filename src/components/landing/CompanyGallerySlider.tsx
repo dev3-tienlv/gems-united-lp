@@ -48,8 +48,8 @@ function getDefaultSlideIndex(count: number): number {
 function getHeroImageUrl(url: string | undefined): string | undefined {
   if (!url) return undefined;
   return withWixImageDelivery(url, {
-    width: 3840,
-    quality: 100,
+    width: 1600,
+    quality: 82,
     mode: "fit",
   });
 }
@@ -57,9 +57,9 @@ function getHeroImageUrl(url: string | undefined): string | undefined {
 function getThumbImageUrl(url: string | undefined): string | undefined {
   if (!url) return undefined;
   return withWixImageDelivery(url, {
-    width: 480,
-    height: 300,
-    quality: 90,
+    width: 192,
+    height: 120,
+    quality: 72,
     mode: "fill",
   });
 }
@@ -72,6 +72,7 @@ function useScrollParallax(
 
   useEffect(() => {
     if (disabled) return;
+    if (window.matchMedia("(max-width: 767px)").matches) return;
 
     const update = () => {
       const el = ref.current;
@@ -146,12 +147,11 @@ function ChevronIcon({ direction }: { direction: "left" | "right" }) {
 interface SlideImageProps {
   imageUrl: string | undefined;
   title: string;
-  priority?: boolean;
   className?: string;
   parallaxStyle?: CSSProperties;
 }
 
-function SlideImage({ imageUrl, title, priority, className = "", parallaxStyle }: SlideImageProps) {
+function SlideImage({ imageUrl, title, className = "", parallaxStyle }: SlideImageProps) {
   if (!imageUrl) {
     return (
       <div className="flex h-full min-h-[280px] w-full items-center justify-center bg-gradient-to-br from-[color:var(--brand)] via-[color:var(--brand-light)] to-[color:var(--brand-strong)]">
@@ -171,8 +171,6 @@ function SlideImage({ imageUrl, title, priority, className = "", parallaxStyle }
         src={imageUrl}
         alt={title}
         fill
-        unoptimized
-        priority={priority}
         sizes="(max-width: 768px) 94vw, (max-width: 1280px) 88vw, 1400px"
         className={`object-contain ${className}`}
       />
@@ -185,6 +183,8 @@ export function CompanyGallerySlider({ items, labels }: CompanyGallerySliderProp
   const defaultIndex = getDefaultSlideIndex(items.length);
   const [activeIndex, setActiveIndex] = useState(defaultIndex);
   const [isPaused, setIsPaused] = useState(false);
+  const [isInView, setIsInView] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(true);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [progressCycle, setProgressCycle] = useState(0);
   const touchStartX = useRef<number | null>(null);
@@ -204,7 +204,8 @@ export function CompanyGallerySlider({ items, labels }: CompanyGallerySliderProp
   const activeItem = items[activeIndex];
   const prevIndex = slideCount > 0 ? (activeIndex - 1 + slideCount) % slideCount : 0;
   const nextIndex = slideCount > 0 ? (activeIndex + 1) % slideCount : 0;
-  const showAutoplayProgress = slideCount > 1 && !isPaused && !prefersReducedMotion;
+  const showAutoplayProgress =
+    slideCount > 1 && isInView && !isPaused && !prefersReducedMotion;
 
   const activeImageParallax: CSSProperties = motionDisabled
     ? {}
@@ -221,6 +222,25 @@ export function CompanyGallerySlider({ items, labels }: CompanyGallerySliderProp
     return () => media.removeEventListener("change", sync);
   }, []);
 
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 767px)");
+    const sync = () => setIsMobileViewport(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    const region = regionRef.current;
+    if (!region) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsInView(entry?.isIntersecting ?? false),
+      { rootMargin: "200px 0px" },
+    );
+    observer.observe(region);
+    return () => observer.disconnect();
+  }, []);
+
   const goTo = useCallback(
     (index: number) => {
       if (slideCount === 0) return;
@@ -235,10 +255,10 @@ export function CompanyGallerySlider({ items, labels }: CompanyGallerySliderProp
   const goPrev = useCallback(() => goTo(activeIndex - 1), [activeIndex, goTo]);
 
   useEffect(() => {
-    if (slideCount <= 1 || isPaused || prefersReducedMotion) return;
+    if (slideCount <= 1 || !isInView || isPaused || prefersReducedMotion) return;
     const timer = window.setInterval(goNext, AUTOPLAY_MS);
     return () => window.clearInterval(timer);
-  }, [goNext, isPaused, prefersReducedMotion, slideCount]);
+  }, [goNext, isInView, isPaused, prefersReducedMotion, slideCount]);
 
   const onTouchStart = (event: React.TouchEvent) => {
     touchStartX.current = event.touches[0]?.clientX ?? null;
@@ -347,7 +367,7 @@ export function CompanyGallerySlider({ items, labels }: CompanyGallerySliderProp
               ref={viewportRef}
               className="relative mx-auto flex aspect-[4/3] h-auto w-full max-w-6xl items-center justify-center md:aspect-auto md:h-[min(68vh,760px)]"
             >
-              {slideCount > 1 ? (
+              {slideCount > 1 && !isMobileViewport ? (
                 <>
                   <button
                     type="button"
@@ -382,6 +402,8 @@ export function CompanyGallerySlider({ items, labels }: CompanyGallerySliderProp
                 {items.map((item, index) => {
                   const imageUrl = getHeroImageUrl(item.imageUrl);
                   const isActive = index === activeIndex;
+                  const shouldLoad =
+                    isActive || (!isMobileViewport && (index === prevIndex || index === nextIndex));
 
                   return (
                     <article
@@ -404,12 +426,13 @@ export function CompanyGallerySlider({ items, labels }: CompanyGallerySliderProp
                           className="pointer-events-none absolute -inset-8 bg-[radial-gradient(ellipse_at_center,rgba(140,82,255,0.22),transparent_70%)]"
                           aria-hidden="true"
                         />
-                        <SlideImage
-                          imageUrl={imageUrl}
-                          title={item.title}
-                          priority={index === defaultIndex}
-                          parallaxStyle={isActive ? activeImageParallax : undefined}
-                        />
+                        {shouldLoad ? (
+                          <SlideImage
+                            imageUrl={imageUrl}
+                            title={item.title}
+                            parallaxStyle={isActive ? activeImageParallax : undefined}
+                          />
+                        ) : null}
                       </div>
                     </article>
                   );
@@ -464,8 +487,7 @@ export function CompanyGallerySlider({ items, labels }: CompanyGallerySliderProp
                           src={thumbUrl}
                           alt={item.title}
                           fill
-                          unoptimized
-                          sizes="96px"
+                          sizes="(max-width: 767px) 64px, 96px"
                           className="object-cover"
                         />
                       ) : (

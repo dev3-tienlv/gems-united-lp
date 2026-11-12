@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Magnetic } from "@/components/effects/Magnetic";
-import { Reveal } from "@/components/motion/Reveal";
 import { getMessages } from "@/i18n/messages";
 import type { Locale } from "@/i18n/types";
 
@@ -16,7 +15,7 @@ export function Hero({ locale }: HeroProps) {
       className="winter-hero-section relative overflow-hidden bg-transparent"
     >
       <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-12 px-5 pb-[420px] pt-12 md:grid-cols-[1.1fr_1fr] md:px-8 md:pb-28 md:pt-24">
-        <Reveal>
+        <div>
           <p className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-[color:var(--brand)] shadow-[0_4px_18px_rgba(111,66,201,0.12)] [background-color:var(--hero-badge-bg)]">
             <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--accent)]" />
             {text.hero.badge}
@@ -56,7 +55,7 @@ export function Hero({ locale }: HeroProps) {
               </Link>
             </Magnetic>
           </div>
-        </Reveal>
+        </div>
 
         <div className="hidden md:block" aria-hidden="true" />
       </div>

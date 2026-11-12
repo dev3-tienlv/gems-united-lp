@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 
-const DESKTOP_FLAKES = 85;
+const DESKTOP_FLAKES = 48;
 
 type SnowflakeStyle = CSSProperties & Record<`--snow-${string}`, string>;
 
@@ -23,9 +23,7 @@ function createSnowflakeStyle(index: number): SnowflakeStyle {
     "--snow-opacity": randomBetween(seed + 2, 0.45, 0.95).toFixed(2),
     "--snow-blur": `${randomBetween(seed + 3, 0, 0.7).toFixed(1)}px`,
     "--snow-fall-duration": `${randomBetween(seed + 4, 11, 22).toFixed(2)}s`,
-    "--snow-sway-duration": `${randomBetween(seed + 5, 3, 7).toFixed(2)}s`,
     "--snow-delay": `${randomBetween(seed + 6, -22, 0).toFixed(2)}s`,
-    "--snow-sway-delay": `${randomBetween(seed + 7, -7, 0).toFixed(2)}s`,
     "--snow-drift": `${randomBetween(seed + 8, -45, 45).toFixed(0)}px`,
     "--snow-rotation": `${randomBetween(seed + 9, -120, 120).toFixed(0)}deg`,
   };
@@ -58,10 +56,8 @@ export function GlobalSnowfall() {
           border-radius: 50%;
           background: rgba(255, 255, 255, var(--snow-opacity));
           filter: blur(var(--snow-blur));
-          animation:
-            global-snow-fall var(--snow-fall-duration) linear infinite,
-            global-snow-sway var(--snow-sway-duration) ease-in-out infinite alternate;
-          animation-delay: var(--snow-delay), var(--snow-sway-delay);
+          animation: global-snow-fall var(--snow-fall-duration) linear infinite;
+          animation-delay: var(--snow-delay);
           will-change: transform;
         }
 
@@ -70,14 +66,12 @@ export function GlobalSnowfall() {
           to { transform: translate3d(var(--snow-drift), 110vh, 0) rotate(var(--snow-rotation)); }
         }
 
-        @keyframes global-snow-sway {
-          from { margin-left: -8px; }
-          50% { margin-left: 4px; }
-          to { margin-left: 10px; }
-        }
-
         @media (max-width: 749px) {
-          .global-snowflake:nth-child(n + 41) { display: none; }
+          .global-snowflake {
+            filter: none;
+          }
+
+          .global-snowflake:nth-child(n + 17) { display: none; }
         }
 
         @media (prefers-reduced-motion: reduce) {
