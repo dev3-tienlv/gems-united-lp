@@ -345,7 +345,7 @@ export function CompanyGallerySlider({ items, labels }: CompanyGallerySliderProp
           <div className="relative z-10 px-2 py-5 md:px-6 md:py-8">
             <div
               ref={viewportRef}
-              className="relative mx-auto flex h-[min(52vh,520px)] w-full max-w-6xl items-center justify-center md:h-[min(68vh,760px)]"
+              className="relative mx-auto flex aspect-[4/3] h-auto w-full max-w-6xl items-center justify-center md:aspect-auto md:h-[min(68vh,760px)]"
             >
               {slideCount > 1 ? (
                 <>
