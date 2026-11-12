@@ -2,12 +2,12 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 
 const ORNAMENTS = {
-  "silver-ornament-pine": { src: "/xmas/ornaments/silver-ornament-pine.png", width: 1400, height: 896 },
-  "purple-gift-boxes": { src: "/xmas/ornaments/purple-gift-boxes.png", width: 1400, height: 953 },
-  "red-ribbon-gift-snow": { src: "/xmas/ornaments/red-ribbon-gift-snow.png", width: 1400, height: 610 },
-  "snow-corner-red-bow": { src: "/xmas/ornaments/snow-corner-red-bow.png", width: 1602, height: 740 },
-  "snowy-red-gift": { src: "/xmas/ornaments/snowy-red-gift.png", width: 1400, height: 995 },
-  "fairy-lights-pine": { src: "/xmas/ornaments/fairy-lights-pine.png", width: 1400, height: 1109 },
+  "silver-ornament-pine": { src: "/xmas/ornaments/silver-ornament-pine.webp", width: 1400, height: 896 },
+  "purple-gift-boxes": { src: "/xmas/ornaments/purple-gift-boxes.webp", width: 1400, height: 953 },
+  "red-ribbon-gift-snow": { src: "/xmas/ornaments/red-ribbon-gift-snow.webp", width: 1400, height: 610 },
+  "snow-corner-red-bow": { src: "/xmas/ornaments/snow-corner-red-bow.webp", width: 1602, height: 740 },
+  "snowy-red-gift": { src: "/xmas/ornaments/snowy-red-gift.webp", width: 1400, height: 995 },
+  "fairy-lights-pine": { src: "/xmas/ornaments/fairy-lights-pine.webp", width: 1400, height: 1109 },
 } as const;
 
 type WinterOrnamentName = keyof typeof ORNAMENTS;
@@ -52,6 +52,7 @@ export function WinterOrnament({
         height={ornament.height}
         sizes={sizes}
         loading="lazy"
+        decoding="async"
         className="select-none"
         style={{ width: "100%", height: "auto" }}
       />
@@ -128,7 +129,7 @@ export function WinterPageShell({ children, className = "" }: WinterPageShellPro
           isolation: isolate;
           overflow-x: clip;
           background-color: #d7c6fa;
-          background-image: url("/xmas/page-winter-desktop.png");
+          background-image: url("/xmas/page-winter-desktop.webp");
           background-position: top center;
           background-repeat: repeat-y;
           background-size: 100% auto;
@@ -148,7 +149,7 @@ export function WinterPageShell({ children, className = "" }: WinterPageShellPro
 
         @media (max-width: 767px) {
           .winter-page {
-            background-image: url("/xmas/page-winter-mobile.png");
+            background-image: url("/xmas/page-winter-mobile.webp");
             background-size: 100% auto;
           }
         }

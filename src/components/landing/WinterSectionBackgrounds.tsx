@@ -15,7 +15,7 @@ export function WinterSectionBackgrounds() {
           --ink: #1b1332;
           --ink-2: #2a2340;
           background-color: #d7c6fa;
-          background-image: url("/xmas/page-winter-desktop.png");
+          background-image: url("/xmas/page-winter-desktop.webp");
           background-position: top center;
           background-repeat: repeat-y;
           background-size: 100% auto;
@@ -30,7 +30,7 @@ export function WinterSectionBackgrounds() {
 
         @media (max-width: 767px) {
           .home-winter-hero {
-            background-image: url("/xmas/page-winter-mobile.png");
+            background-image: url("/xmas/page-winter-mobile.webp");
             background-size: 100% auto;
           }
         }

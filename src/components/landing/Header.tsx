@@ -151,11 +151,11 @@ export function Header({ locale, initialSolid = false }: HeaderProps) {
       <div className="mx-auto flex h-24 w-full max-w-7xl items-center justify-between px-5 md:h-28 md:px-8">
         <Link href="/" className="flex items-center gap-2" aria-label={`${text.nav.home} — GEMS United`}>
           <Image
-            src="/xmas/christmas-logo-compact-v2.png"
+            src="/xmas/christmas-logo-compact-v2.webp"
             alt="GEMS United"
             width={1122}
             height={496}
-            priority
+            loading="eager"
             sizes="(max-width: 767px) 144px, (max-width: 1023px) 120px, 165px"
             className="h-auto w-36 md:w-[120px] lg:w-[165px]"
           />

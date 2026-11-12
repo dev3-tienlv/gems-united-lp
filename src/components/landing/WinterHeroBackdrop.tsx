@@ -49,8 +49,13 @@ export function WinterHeroBackdrop() {
       `}</style>
       <div className="winter-hero-backdrop" aria-hidden="true">
         <picture>
-          <source media="(max-width: 767px)" srcSet="/xmas/hero-winter-mobile.png" />
-          <img src="/xmas/hero-winter-desktop.png" alt="" />
+          <source media="(max-width: 767px)" srcSet="/xmas/hero-winter-mobile.webp" type="image/webp" />
+          <img
+            src="/xmas/hero-winter-desktop.webp"
+            alt=""
+            fetchPriority="high"
+            decoding="async"
+          />
         </picture>
         <span className="winter-hero-scrim" />
       </div>
