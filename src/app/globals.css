@@ -111,6 +111,20 @@ body {
   font-family: var(--ff-body), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto;
 }
 
+.home-winter-hero > header,
+.home-winter-hero #home,
+.dark .home-winter-hero > header,
+.dark .home-winter-hero #home {
+  --ink: #1b1332;
+  --ink-2: #2a2340;
+  --muted: #5a527c;
+  --line: #ded3f3;
+  --soft: #f7f5ff;
+  --surface: #ffffff;
+  --surface-glass: rgba(255, 255, 255, 0.9);
+  --hero-badge-bg: rgba(255, 255, 255, 0.9);
+}
+
 button,
 select {
   outline: none;

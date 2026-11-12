@@ -11,7 +11,7 @@ interface DualCtaProps {
 export function DualCta({ locale }: DualCtaProps) {
   const text = getMessages(locale).about.cta;
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-[color:var(--surface)] via-[color:var(--soft)] to-[color:var(--surface)] pb-40 pt-20 text-[color:var(--ink)] md:pb-40 md:pt-24">
+    <section className="relative overflow-hidden bg-gradient-to-br from-[color:var(--surface)] via-[color:var(--soft)] to-[color:var(--surface)] pb-40 pt-14 text-[color:var(--ink)] md:pb-40 md:pt-16">
       <div className="relative z-10 mx-auto w-full max-w-7xl px-5 md:px-8">
         <Reveal>
           <header className="max-w-3xl">

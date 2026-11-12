@@ -38,15 +38,19 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         headers: securityHeaders,
       },
-      {
-        source: "/:all*(svg|jpg|jpeg|png|webp|avif|gif|ico|css|js|woff|woff2|ttf|eot)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
+      ...(process.env.NODE_ENV === "production"
+        ? [
+            {
+              source: "/:all*(svg|jpg|jpeg|png|webp|avif|gif|ico|css|js|woff|woff2|ttf|eot)",
+              headers: [
+                {
+                  key: "Cache-Control",
+                  value: "public, max-age=31536000, immutable",
+                },
+              ],
+            },
+          ]
+        : []),
     ];
   },
   async redirects() {

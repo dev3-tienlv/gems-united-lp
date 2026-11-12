@@ -16,7 +16,7 @@ export function OurDesigns({ items, locale }: OurDesignsProps) {
   const hasItems = items.length > 0;
 
   return (
-    <section id="designs" className="bg-[color:var(--soft)] py-10 md:py-28">
+    <section id="designs" className="bg-[color:var(--soft)] py-10 md:py-14">
       <div className="mx-auto w-full max-w-7xl px-5 md:px-8">
         <Reveal>
           <SectionTitle

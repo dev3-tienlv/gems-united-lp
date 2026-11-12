@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import { WinterOrnament } from "@/components/xmas/WinterPageDecor";
 import type { Locale } from "@/i18n/types";
 import { withWixImageDelivery } from "@/lib/wix-media";
 import type { CompanyImageItem } from "@/types/landing";
@@ -288,7 +289,7 @@ export function CompanyGallerySlider({ items, labels }: CompanyGallerySliderProp
       tabIndex={0}
     >
       <div
-        className="gallery-frame relative overflow-hidden rounded-[36px] p-[1px]"
+        className="gallery-frame relative overflow-visible rounded-[35px]"
         style={
           motionDisabled
             ? undefined
@@ -296,13 +297,8 @@ export function CompanyGallerySlider({ items, labels }: CompanyGallerySliderProp
         }
       >
         <div
-          className="pointer-events-none absolute inset-0 rounded-[36px] bg-[conic-gradient(from_180deg_at_50%_50%,rgba(140,82,255,0.55),rgba(126,217,87,0.35),rgba(140,82,255,0.15),rgba(126,217,87,0.45),rgba(140,82,255,0.55))] opacity-80 motion-safe:animate-[gallery-border-spin_14s_linear_infinite]"
-          aria-hidden="true"
-        />
-
-        <div
           ref={stageRef}
-          className="gallery-stage relative overflow-hidden rounded-[35px] bg-[#0d0818] shadow-[0_32px_80px_-28px_rgba(18,8,40,0.72)]"
+          className="gallery-stage relative overflow-hidden rounded-[35px] bg-[#0d0818]"
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
           onPointerMove={onPointerMove}
@@ -495,6 +491,12 @@ export function CompanyGallerySlider({ items, labels }: CompanyGallerySliderProp
             </div>
           ) : null}
         </div>
+        <WinterOrnament
+          name="silver-ornament-pine"
+          motion="float"
+          placement="home-gallery-silver"
+          sizes="330px"
+        />
       </div>
     </div>
   );

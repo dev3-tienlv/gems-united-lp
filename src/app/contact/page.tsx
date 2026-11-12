@@ -5,6 +5,7 @@ export const revalidate = 3600;
 import { ContactSection } from "@/components/landing/ContactSection";
 import { Footer } from "@/components/landing/Footer";
 import { Header } from "@/components/landing/Header";
+import { WinterPageShell } from "@/components/xmas/WinterPageDecor";
 import { getLocale } from "@/i18n/locale";
 
 export const metadata: Metadata = {
@@ -19,12 +20,15 @@ export const metadata: Metadata = {
 export default async function ContactPage() {
   const locale = await getLocale();
   return (
-    <div className="bg-[color:var(--bg)]">
-      <Header locale={locale} initialSolid />
+    <WinterPageShell className="winter-page--transparent-sections">
+      <Header locale={locale} />
       <main id="main-content">
-        <ContactSection locale={locale} sectionClassName="bg-[color:var(--surface)] pb-20 pt-10 md:pb-40 md:pt-28" />
+        <ContactSection
+          locale={locale}
+          sectionClassName="winter-transparent-section pb-20 pt-10 md:pb-40 md:pt-28"
+        />
       </main>
       <Footer locale={locale} showTopBanner={false} />
-    </div>
+    </WinterPageShell>
   );
 }

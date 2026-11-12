@@ -5,11 +5,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { LOGO_URL } from "@/data/landing";
 import { getChromeMessages } from "@/i18n/chrome";
 import type { Locale } from "@/i18n/types";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import { ThemeToggle } from "./ThemeToggle";
 
 interface HeaderProps {
   locale: Locale;
@@ -153,18 +151,19 @@ export function Header({ locale, initialSolid = false }: HeaderProps) {
       <div className="mx-auto flex h-24 w-full max-w-7xl items-center justify-between px-5 md:h-28 md:px-8">
         <Link href="/" className="flex items-center gap-2" aria-label={`${text.nav.home} — GEMS United`}>
           <Image
-            src={LOGO_URL}
+            src="/xmas/christmas-logo-compact-v2.png"
             alt="GEMS United"
-            width={192}
-            height={192}
+            width={1122}
+            height={496}
             priority
-            sizes="(max-width: 768px) 80px, 96px"
-            className="h-20 w-auto md:h-24"
+            sizes="(max-width: 767px) 144px, (max-width: 1023px) 120px, 165px"
+            className="h-auto w-36 md:w-[120px] lg:w-[165px]"
           />
         </Link>
 
         <nav
-          className="hidden items-center gap-9 md:flex"
+          className="hidden items-center md:flex"
+          style={{ columnGap: "2.25rem" }}
           aria-label={text.navAriaLabel}
         >
           {navItems.map((item) => {
@@ -183,7 +182,6 @@ export function Header({ locale, initialSolid = false }: HeaderProps) {
         </nav>
 
         <div className="flex items-center gap-2">
-          <ThemeToggle switchToLight={text.theme.switchToLight} switchToDark={text.theme.switchToDark} />
           <div className="hidden md:block">
             <LanguageSwitcher locale={locale} />
           </div>

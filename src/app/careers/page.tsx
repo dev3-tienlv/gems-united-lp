@@ -4,6 +4,7 @@ import { Header } from "@/components/landing/Header";
 import { SectionTitle } from "@/components/landing/SectionTitle";
 import { CareerCard } from "@/components/landing/cards";
 import { Reveal } from "@/components/motion/Reveal";
+import { WinterPageShell } from "@/components/xmas/WinterPageDecor";
 import { getLocale } from "@/i18n/locale";
 import { getMessages } from "@/i18n/messages";
 import { getAllCareers } from "@/lib/wix-headless";
@@ -23,10 +24,10 @@ export default async function CareersPage() {
   const text = getMessages(locale);
 
   return (
-    <div className="bg-[color:var(--soft)]">
+    <WinterPageShell className="winter-page--transparent-sections">
       <Header locale={locale} />
       <main id="main-content">
-        <section className="bg-[color:var(--soft)] pb-20 pt-10 md:pb-40 md:pt-28">
+        <section className="pb-20 pt-10 md:pb-40 md:pt-28">
           <div className="mx-auto w-full max-w-7xl px-5 md:px-8">
             <Reveal>
               <SectionTitle
@@ -47,6 +48,6 @@ export default async function CareersPage() {
         </section>
       </main>
       <Footer locale={locale} />
-    </div>
+    </WinterPageShell>
   );
 }

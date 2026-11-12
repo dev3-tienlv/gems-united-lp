@@ -8,6 +8,8 @@ import { CompanyGallery } from "@/components/landing/CompanyGallery";
 import { OurDesigns } from "@/components/landing/OurDesigns";
 import { ContactSection } from "@/components/landing/ContactSection";
 import { SectionTitle } from "@/components/landing/SectionTitle";
+import { WinterHeroBackdrop } from "@/components/landing/WinterHeroBackdrop";
+import { WinterSectionBackgrounds } from "@/components/landing/WinterSectionBackgrounds";
 import { BlogCard, CareerCard, ValueCard } from "@/components/landing/cards";
 import { Reveal } from "@/components/motion/Reveal";
 import { getLocale } from "@/i18n/locale";
@@ -26,7 +28,12 @@ export default async function Home() {
   const text = getMessages(locale);
 
   return (
-    <div className="bg-gradient-to-br from-[color:var(--hero-from)] via-[color:var(--hero-via)] to-[color:var(--hero-to)]">
+    <div
+      className="home-winter-hero"
+      style={{ position: "relative", backgroundColor: "#f4efff" }}
+    >
+      <WinterHeroBackdrop />
+      <WinterSectionBackgrounds />
       <Header locale={locale} />
       <main id="main-content">
         <Hero locale={locale} />
@@ -35,8 +42,8 @@ export default async function Home() {
 
         <Offers locale={locale} />
 
-        <section id="values" className="bg-[color:var(--surface)] py-10 md:py-28">
-          <div className="mx-auto w-full max-w-7xl px-5 md:px-8">
+        <section id="values" className="relative bg-[color:var(--surface)] py-10 md:py-14">
+          <div className="relative z-10 mx-auto w-full max-w-7xl px-5 md:px-8">
             <Reveal>
               <SectionTitle
                 eyebrow={text.home.valuesEyebrow}
@@ -59,8 +66,8 @@ export default async function Home() {
 
         <OurDesigns items={content.designs} locale={locale} />
 
-        <section id="careers" className="bg-[color:var(--surface)] py-10 md:py-28">
-          <div className="mx-auto w-full max-w-7xl px-5 md:px-8">
+        <section id="careers" className="relative bg-[color:var(--surface)] py-10 md:py-14">
+          <div className="relative z-10 mx-auto w-full max-w-7xl px-5 md:px-8">
             <Reveal>
               <SectionTitle
                 eyebrow={text.home.careersEyebrow}
@@ -78,7 +85,7 @@ export default async function Home() {
           </div>
         </section>
 
-        <section id="insights" className="bg-[color:var(--soft)] py-10 md:py-28">
+        <section id="insights" className="bg-[color:var(--soft)] py-10 md:py-14">
           <div className="mx-auto w-full max-w-7xl px-5 md:px-8">
             <Reveal>
               <SectionTitle
@@ -97,7 +104,7 @@ export default async function Home() {
           </div>
         </section>
 
-        <ContactSection locale={locale} sectionClassName="bg-[color:var(--surface)] pb-20 pt-10 md:pb-40 md:pt-28" />
+        <ContactSection locale={locale} sectionClassName="bg-[color:var(--surface)] pb-20 pt-10 md:pb-40 md:pt-16" />
       </main>
       <Footer locale={locale} />
     </div>
